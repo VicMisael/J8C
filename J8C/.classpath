@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="src/libs/jsfml.jar" sourcepath="C:/Users/misael/Desktop/J8C/libs/jsfml-test-Dec02_2013/src">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/C:/Users/misael/Desktop/J8C/libs/jsfml-test-Dec02_2013/javadoc/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/Zulu jDK 8"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
