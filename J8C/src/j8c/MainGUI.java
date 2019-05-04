@@ -32,6 +32,8 @@ import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+
 import javax.swing.UIManager;
 
 public class MainGUI extends JFrame {
@@ -49,19 +51,6 @@ public class MainGUI extends JFrame {
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
-
-		try {
-			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-		} catch (Throwable e) {
-			e.printStackTrace();
-		}
-
-		try {
-			new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-		} catch (InterruptedException | IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
 
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -200,34 +189,29 @@ public class MainGUI extends JFrame {
 		canvas.setBackground(new Color(0, 0, 0));
 
 		CPU.getInstance().init();
-		JSFMLScreen.getInstance().setParamJSFML(RomLoader.getInstance().getRomName());
-		JSFMLScreen.getInstance().start();
 
 	}
 
 	public static void drawToCanvas(byte[] screen) {
-
-		Graphics graphics = (Graphics2D) canvas.getGraphics();
-		graphics.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-		graphics.setColor(Color.white);
-		int width = (int) canvas.getSize().getWidth();
-		int height = (int) canvas.getSize().getHeight();
-		int y, x = 0;
-		for (y = 0; y < 32; y++) {
-			for (x = 0; x < 64; x++) {
-				byte screenByte = screen[x + y * 64];
-				if (screenByte == 0) {
-
-				} else {
-
-					graphics.fillRect(x * 6, y * 6, 6, 6);
-					// p.addPoint(x * 6, y * 6);
-				}
-			}
-
+		// y=32Pixels,X=64 pixels, CanvasX=384 canvasY=192
+		if (canvas.getBufferStrategy() == null) {
+			canvas.createBufferStrategy(2);
 		}
 
-		canvas.paint(graphics);
+		BufferedImage bimage = new BufferedImage(64, 32, BufferedImage.TYPE_INT_RGB);
+		int value = 0;
+		for (int y = 0; y < 32; y++) {
+			for (int x = 0; x < 64; x++) {
+				value=0x0;
+				if (screen[x + y * 64] != 0) {
+					value = 0xffffff;
+				} 
+
+				bimage.setRGB(x, y, value);
+			}
+		}
+
+		canvas.getGraphics().drawImage(bimage.getScaledInstance(canvas.getWidth(), canvas.getHeight(), 0), 0, 0, null);
 
 	}
 

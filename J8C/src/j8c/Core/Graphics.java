@@ -1,12 +1,12 @@
 package j8c.Core;
 
-import j8c.JSFMLScreen;
+
 import j8c.MainGUI;
 
 public class Graphics {
 	public static void Draw(byte[] screen,String info) {
 		MainGUI.drawToCanvas(screen);
-		JSFMLScreen.getInstance().setScreen(screen);
+
 
 //		String graphic = "";
 //		
