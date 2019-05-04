@@ -108,74 +108,74 @@ public class MainGUI extends JFrame {
 		canvas.setBackground(Color.WHITE);
 		canvas.addKeyListener(new KeyAdapter() {
 			public void keyPressed(KeyEvent arg0) {
-//				int kpressed = -1;
-//				if (Character.isDigit(arg0.getKeyChar())) {
-//					kpressed = Character.getNumericValue(arg0.getKeyChar());
-//
-//				} else {
-//					switch (Character.toUpperCase(arg0.getKeyChar())) {
-//					case 'A':
-//						kpressed = 0xa;
-//						break;
-//					case 'B':
-//						kpressed = 0xb;
-//						break;
-//
-//					case 'C':
-//						kpressed = 0xC;
-//						break;
-//					case 'D':
-//						kpressed = 0xD;
-//						break;
-//					case 'E':
-//						kpressed = 0xE;
-//						break;
-//					case 'F':
-//						kpressed = 0xF;
-//						break;
-//
-//					}
-//
-//				}
-//				if (kpressed != -1) {
-//					System.out.println(kpressed);
-//					Keyboard.setKeyPressedAtIndex(kpressed);
-//				}
+				int kpressed = -1;
+				if (Character.isDigit(arg0.getKeyChar())) {
+					kpressed = Character.getNumericValue(arg0.getKeyChar());
+
+				} else {
+					switch (Character.toUpperCase(arg0.getKeyChar())) {
+					case 'A':
+						kpressed = 0xa;
+						break;
+					case 'B':
+						kpressed = 0xb;
+						break;
+
+					case 'C':
+						kpressed = 0xC;
+						break;
+					case 'D':
+						kpressed = 0xD;
+						break;
+					case 'E':
+						kpressed = 0xE;
+						break;
+					case 'F':
+						kpressed = 0xF;
+						break;
+
+					}
+
+				}
+				if (kpressed != -1) {
+					System.out.println(kpressed);
+					Keyboard.setKeyPressedAtIndex(kpressed);
+				}
 
 			}
 
 			public void keyReleased(KeyEvent e) {
-//				int kpressed = -1;
-//				if (Character.isDigit(e.getKeyChar())) {
-//					kpressed = Character.getNumericValue(e.getKeyChar());
-//				} else {
-//					switch (Character.toUpperCase(e.getKeyChar())) {
-//					case 'A':
-//						kpressed = 0xa;
-//						break;
-//					case 'B':
-//						kpressed = 0xb;
-//						break;
-//					case 'C':
-//						kpressed = 0xC;
-//						break;
-//					case 'D':
-//						kpressed = 0xD;
-//						break;
-//					case 'E':
-//						kpressed = 0xE;
-//						break;
-//					case 'F':
-//						kpressed = 0xF;
-//						break;
-//
-//					}
-//
-//				}
-//				if (kpressed != -1) {
-//					System.out.println(kpressed);
-//					Keyboard.setKeyUnpressedAtIndex(kpressed);
-//				}
+				int kpressed = -1;
+				if (Character.isDigit(e.getKeyChar())) {
+					kpressed = Character.getNumericValue(e.getKeyChar());
+				} else {
+					switch (Character.toUpperCase(e.getKeyChar())) {
+					case 'A':
+						kpressed = 0xa;
+						break;
+					case 'B':
+						kpressed = 0xb;
+						break;
+					case 'C':
+						kpressed = 0xC;
+						break;
+					case 'D':
+						kpressed = 0xD;
+						break;
+					case 'E':
+						kpressed = 0xE;
+						break;
+					case 'F':
+						kpressed = 0xF;
+						break;
+
+					}
+
+				}
+				if (kpressed != -1) {
+					System.out.println(kpressed);
+					Keyboard.setKeyUnpressedAtIndex(kpressed);
+				}
 			}
 		});
 

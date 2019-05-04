@@ -5,18 +5,29 @@ public class Timers {
 	private static short delayTimer = 0;
 	private static long currentMilis;
 	private static long afterMilis;
-	
+	private static Thread delayTimerCounter;
+	private static Thread soundTimerCounter;
+
 	public static void setCurrent(long current) {
-		currentMilis=current;
+		currentMilis = current;
 	}
+
+	static {
+		
+		
+		
+
+	}
+
 	public static void setAfter(long after) {
-		afterMilis=after;
-		//calculate();
+		afterMilis = after;
+		// calculate();
 	}
+
 	@SuppressWarnings("unused")
 	private static void calculate() {
-		System.out.println(afterMilis-currentMilis);
-		
+		System.out.println(afterMilis - currentMilis);
+
 	}
 
 	public static short getDelayTimer() {
@@ -29,24 +40,25 @@ public class Timers {
 
 	public static void setDelayTimer(short delTimer) {
 		delayTimer = delTimer;
-		Thread delayTimerCounter = new Thread(new DelayTimerCounter());
+		delayTimerCounter = new Thread(new DelayTimerCounter());
+		delayTimerCounter.setName("delay TImer");
 		delayTimerCounter.start();
+		
 	}
+
 	public static void setSoundTimer(short sTimer) {
-		delayTimer = sTimer;
-		Thread soundTimerCounter = new Thread(new SoundTimerCounter());
+		soundTimer = sTimer;
+		soundTimerCounter = new Thread(new SoundTimerCounter());
+		soundTimerCounter.setName("Sound TImer");
 		soundTimerCounter.start();
 	}
-	
-	
+
 	private static class DelayTimerCounter implements Runnable {
 		public void run() {
 			while (delayTimer != 0) {
 				
 				delayTimer--;
-				System.out.println("Test");
 				try {
-					
 					Thread.sleep(16);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
@@ -56,6 +68,7 @@ public class Timers {
 		}
 
 	}
+
 	private static class SoundTimerCounter implements Runnable {
 		public void run() {
 			while (soundTimer != 0) {

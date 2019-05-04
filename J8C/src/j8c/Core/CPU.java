@@ -28,7 +28,7 @@ public class CPU implements Runnable {
 	private static Thread CPUThread;
 	private static boolean controllerQueue = false;
 	private static boolean breakTheEmu = false;
-
+	private static boolean pauseTheEmu=false;
 	// Hexadecimal F == Binary 1111
 	// FF= 1 Byte
 	@SuppressWarnings("unused")
@@ -52,7 +52,7 @@ public class CPU implements Runnable {
 
 	public void run() {
 
-		while (true) {
+		while (!pauseTheEmu) {
 			if (!controllerQueue) {
 				cycle();
 			} else {
