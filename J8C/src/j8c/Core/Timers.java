@@ -1,5 +1,7 @@
 package j8c.Core;
 
+import java.awt.Toolkit;
+
 public class Timers {
 	private static short soundTimer = 0;
 	private static short delayTimer = 0;
@@ -73,6 +75,7 @@ public class Timers {
 		public void run() {
 			while (soundTimer != 0) {
 				soundTimer--;
+				System.out.println("beep");
 				try {
 					Thread.sleep(16);
 				} catch (InterruptedException e) {

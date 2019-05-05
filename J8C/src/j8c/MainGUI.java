@@ -65,12 +65,18 @@ public class MainGUI extends JFrame {
 	}
 
 	public MainGUI() {
+		setResizable(false);
+		setTitle("JC8");
 		initComponents();
+		try {
+			  UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			} catch(Exception e) {
+			  System.out.println("Error setting native LAF: " + e);
+			}
 
 	}
 
 	private void initComponents() {
-		setResizable(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 410, 262);
 
@@ -88,6 +94,7 @@ public class MainGUI extends JFrame {
 		menuBar.add(mnNewMenu);
 		mntmNewMenuItem_2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				setTitle(RomLoader.getInstance().getRomName());
 				startEmulation();
 
 			}
@@ -96,6 +103,7 @@ public class MainGUI extends JFrame {
 		mnNewMenu.add(mntmNewMenuItem_2);
 		mntmNewMenuItem_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				setTitle("JC8");
 				stopEmulation();
 			}
 		});
@@ -138,6 +146,7 @@ public class MainGUI extends JFrame {
 
 				}
 				if (kpressed != -1) {
+					CPU.getInstance().PressedKeyInterrupt();
 					System.out.println(kpressed);
 					Keyboard.setKeyPressedAtIndex(kpressed);
 				}
@@ -173,6 +182,7 @@ public class MainGUI extends JFrame {
 
 				}
 				if (kpressed != -1) {
+					CPU.getInstance().unpressedKeyInterrupt();
 					System.out.println(kpressed);
 					Keyboard.setKeyUnpressedAtIndex(kpressed);
 				}
@@ -182,7 +192,7 @@ public class MainGUI extends JFrame {
 		contentPane.add(canvas, BorderLayout.CENTER);
 	}
 
-	Thread ScreenThread;
+
 
 	public static void startEmulation() {
 
@@ -221,7 +231,7 @@ public class MainGUI extends JFrame {
 	}
 
 	public void loadGame() {
-		System.out.println(canvas.getWidth() + " " + canvas.getHeight());
+		//System.out.println(canvas.getWidth() + " " + canvas.getHeight());
 		RomLoader.getInstance().resetRom();
 		String url = "";
 		JFileChooser fileChooser = new JFileChooser();

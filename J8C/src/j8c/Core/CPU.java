@@ -28,7 +28,7 @@ public class CPU implements Runnable {
 	private static Thread CPUThread;
 	private static boolean controllerQueue = false;
 	private static boolean breakTheEmu = false;
-	private static boolean pauseTheEmu=false;
+	//private static boolean pauseTheEmu=false;
 	// Hexadecimal F == Binary 1111
 	// FF= 1 Byte
 	@SuppressWarnings("unused")
@@ -135,6 +135,7 @@ public class CPU implements Runnable {
 		for (int i = 0; i < screen.length; i++) {
 			screen[i] = 0;
 		}
+		Graphics.cleanBl();
 		Stack.reset();
 		
 	}
@@ -172,6 +173,12 @@ public class CPU implements Runnable {
 		//Timers.setCurrent(System.nanoTime());
 		fetchOpcode();
 		decodeExecute();
+		try {
+			Thread.sleep(1);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		//Timers.setAfter(System.nanoTime());
 		//Timers.calculate();
 
@@ -221,7 +228,7 @@ public class CPU implements Runnable {
 		int instructionId = (opcode & 0xf000);
 		int instructionArgs = (opcode & 0x0fff);
 		new Instruction(instructionId, instructionArgs).execute();
-		System.out.println(Integer.toHexString(opcode));
+		//System.out.println(Integer.toHexString(opcode));
 		// Graphics.setExecutedInstructionHex(Integer.toHexString(opcode));
 
 	}
@@ -454,10 +461,8 @@ public class CPU implements Runnable {
 				if (0x0a == (args & 0xff)) {
 					// To be implemented
 					int Xreg = (args & 0xf00) >> 8;
-					if (keyIsPressed) {
 						regV[Xreg] = (byte) lastPressed;
 						PC += 2;
-					}
 				}
 				if (0x15 == (args & 0xff)) {
 					int Xreg = (args & 0xf00) >> 8;
@@ -505,12 +510,7 @@ public class CPU implements Runnable {
 
 				}
 			}
-			try {
-				Thread.sleep(1);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			
 		}
 
 	}
