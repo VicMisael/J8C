@@ -24,8 +24,8 @@ public class Timers {
 		// calculate();
 	}
 
-	@SuppressWarnings("unused")
-	private static void calculate() {
+
+	public static void calculate() {
 		System.out.println(afterMilis - currentMilis);
 
 	}

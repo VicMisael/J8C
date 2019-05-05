@@ -52,17 +52,16 @@ public class CPU implements Runnable {
 
 	public void run() {
 
-		while (!pauseTheEmu) {
+		while (!breakTheEmu) {
 			if (!controllerQueue) {
 				cycle();
+				
 			} else {
 				Keys = Keyboard.getKeyArray();
 				lastPressed = Keyboard.getLastPressed();
 				controllerQueue = false;
 			}
-			if (breakTheEmu) {
-				break;
-			}
+		
 		}
 
 	}
@@ -116,12 +115,19 @@ public class CPU implements Runnable {
 		CPUThread = new Thread(this);
 		CPUThread.setName("Interpreter");
 		CPUThread.start();
-
+		
 	}
 
 	public void stopCPU() {
 		if (CPUThread.isAlive()) {
-			CPUThread.interrupt();
+			breakTheEmu = true;
+			try {
+				CPUThread.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				CPUThread.interrupt();
+			}
 		}
 		for (int i = 0; i < memory.length; i++) {
 			memory[i] = 0;
@@ -130,7 +136,7 @@ public class CPU implements Runnable {
 			screen[i] = 0;
 		}
 		Stack.reset();
-		breakTheEmu = true;
+		
 	}
 
 	public void PressedKeyInterrupt() {
@@ -163,10 +169,11 @@ public class CPU implements Runnable {
 ////				byteOrder = 0;
 ////			}
 ////		}
-		Timers.setCurrent(System.nanoTime());
+		//Timers.setCurrent(System.nanoTime());
 		fetchOpcode();
 		decodeExecute();
-		Timers.setAfter(System.nanoTime());
+		//Timers.setAfter(System.nanoTime());
+		//Timers.calculate();
 
 	}
 
@@ -498,7 +505,12 @@ public class CPU implements Runnable {
 
 				}
 			}
-
+			try {
+				Thread.sleep(1);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 
 	}
