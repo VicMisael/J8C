@@ -2,26 +2,27 @@ package j8c.Core;
 
 public class Keyboard {
 
-	private static boolean Keys[] = { false, false, false, false, false, false, false, false, false, false, false, false, false,
-			false, false, false };
+	private static boolean Keys[] = { false, false, false, false, false, false, false, false, false, false, false,
+			false, false, false, false, false };
 	private static boolean someKeyIsPressed = false;
-	private static int lastPressed=-1;
+	private static int lastPressed = -1;
 
 	private Keyboard() {
 	}
-	
+
 	public static boolean[] getKeyArray() {
 		return Keys;
 	}
-	
+
 	public static boolean someKeyIsPressed() {
 		return someKeyIsPressed;
 	}
+
 	public static int getLastPressed() {
-		
+
 		return lastPressed;
 	}
-	
+
 	public static boolean getKeyPressedAtIndex(int index) {
 
 		return Keys[index];
@@ -36,6 +37,7 @@ public class Keyboard {
 	public static void setKeyUnpressedAtIndex(int index) {
 		someKeyIsPressed = false;
 		Keys[index] = false;
+		lastPressed = -1;
 	}
 
 	public static int getLastPressedKey() {
