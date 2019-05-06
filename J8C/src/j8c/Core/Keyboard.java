@@ -5,7 +5,7 @@ public class Keyboard {
 	private static boolean Keys[] = { false, false, false, false, false, false, false, false, false, false, false, false, false,
 			false, false, false };
 	private static boolean someKeyIsPressed = false;
-	private static int lastPressed;
+	private static int lastPressed=-1;
 
 	private Keyboard() {
 	}

@@ -22,17 +22,19 @@ public class CPU implements Runnable {
 	private byte screen[] = new byte[64 * 32];
 	protected int opcode;
 	private boolean[] Keys;
+	private Random r;
 	private int lastPressed = -1;
 	private boolean keyIsPressed = false;
 	// private boolean drawFlag = true;
 	private static Thread CPUThread;
 	private static boolean controllerQueue = false;
 	private static boolean breakTheEmu = false;
-	//private static boolean pauseTheEmu=false;
+
+	// private static boolean pauseTheEmu=false;
 	// Hexadecimal F == Binary 1111
 	// FF= 1 Byte
-	@SuppressWarnings("unused")
-	private void CPU() {
+	private CPU() {
+		r = new Random();
 	}
 
 	public static void setNull() {
@@ -55,13 +57,13 @@ public class CPU implements Runnable {
 		while (!breakTheEmu) {
 			if (!controllerQueue) {
 				cycle();
-				
+
 			} else {
 				Keys = Keyboard.getKeyArray();
 				lastPressed = Keyboard.getLastPressed();
 				controllerQueue = false;
 			}
-		
+
 		}
 
 	}
@@ -115,7 +117,7 @@ public class CPU implements Runnable {
 		CPUThread = new Thread(this);
 		CPUThread.setName("Interpreter");
 		CPUThread.start();
-		
+
 	}
 
 	public void stopCPU() {
@@ -137,7 +139,7 @@ public class CPU implements Runnable {
 		}
 		Graphics.cleanBl();
 		Stack.reset();
-		
+
 	}
 
 	public void PressedKeyInterrupt() {
@@ -170,7 +172,7 @@ public class CPU implements Runnable {
 ////				byteOrder = 0;
 ////			}
 ////		}
-		//Timers.setCurrent(System.nanoTime());
+		// Timers.setCurrent(System.nanoTime());
 		fetchOpcode();
 		decodeExecute();
 		try {
@@ -179,8 +181,8 @@ public class CPU implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		//Timers.setAfter(System.nanoTime());
-		//Timers.calculate();
+		// Timers.setAfter(System.nanoTime());
+		// Timers.calculate();
 
 	}
 
@@ -209,17 +211,12 @@ public class CPU implements Runnable {
 	public void fetchOpcode() {
 		byte opcodeFbyte = memory[PC];
 		byte opcodeSbyte = memory[PC + 1];
-		if (opcodeFbyte > 0) {
-			opcode = opcodeFbyte;
-		} else {
-			opcode = Byte.toUnsignedInt(opcodeFbyte);
-		}
+
+		opcode = Byte.toUnsignedInt(opcodeFbyte);
+
 		opcode <<= 8;
-		if (opcodeSbyte > 0) {
-			opcode |= opcodeSbyte;
-		} else {
-			opcode |= Byte.toUnsignedInt(opcodeSbyte);
-		}
+
+		opcode |= Byte.toUnsignedInt(opcodeSbyte);
 
 	}
 
@@ -228,8 +225,7 @@ public class CPU implements Runnable {
 		int instructionId = (opcode & 0xf000);
 		int instructionArgs = (opcode & 0x0fff);
 		new Instruction(instructionId, instructionArgs).execute();
-		//System.out.println(Integer.toHexString(opcode));
-		// Graphics.setExecutedInstructionHex(Integer.toHexString(opcode));
+		System.out.println(Integer.toHexString(opcode));
 
 	}
 
@@ -264,6 +260,10 @@ public class CPU implements Runnable {
 		int id = 0;
 		int args = 0;
 
+		public void logAsm(String asm) {
+			//System.out.println(asm);
+		}
+
 		public Instruction(int id, int args) {
 			this.id = id;
 			this.args = args;
@@ -275,23 +275,29 @@ public class CPU implements Runnable {
 			// System.out.println("The instruction is:" + Integer.toHexString((id & args)));
 			if (id == 0x0000) {
 				if (args == 0x0E0) {
+					logAsm("clsc");
 					for (int i = 0; i < screen.length; ++i) {
 						screen[i] = 0;
 					}
 					PC += 2;
 				}
 				if (args == 0x0ee) {
+					logAsm("ret");
 					PC = Stack.pop();
+					PC += 2;
 				}
 			}
 			if (id == 0x1000) {
+				logAsm("goto " + (args));
 				PC = args;
 			}
 			if (id == 0x2000) {
+				logAsm("call " + (args));
 				Stack.push(PC);
 				PC = args;
 			}
 			if (id == 0x3000) {
+				logAsm("skpfeq V[" + ((args & 0xF00) >> 8) + "]," + (args & 0x0FF));
 				int Xreg = (args & 0xF00) >> 8;
 				int value = (args & 0x0FF);
 				if (regV[Xreg] == value) {
@@ -301,6 +307,7 @@ public class CPU implements Runnable {
 				}
 			}
 			if (id == 0x4000) {
+				logAsm("skpfneq V[" + ((args & 0xF00) >> 8) + "]," + (args & 0x0FF));
 				int Xreg = (args & 0xF00) >> 8;
 				int value = (args & 0x0FF);
 				if (regV[Xreg] != value) {
@@ -311,6 +318,8 @@ public class CPU implements Runnable {
 
 			}
 			if (id == 0x5000) {
+				logAsm("skpfeq V[" + ((args & 0xF00) >> 8) + "],V[" + ((args & 0x0f0) >> 4) + "]");
+
 				int Xreg = (args & 0xf00) >> 8;
 				int Yreg = (args & 0x0f0) >> 4;
 				if (regV[Xreg] == regV[Yreg]) {
@@ -320,12 +329,14 @@ public class CPU implements Runnable {
 				}
 			}
 			if (id == 0x6000) {
+				logAsm("ld V[" + ((args & 0xF00) >> 8) + "]," +Byte.toUnsignedInt( (byte) (args & 0x0ff)));
 				int Xreg = (args & 0x0f00) >> 8;
 				byte value = (byte) (args & 0x0ff);
 				regV[Xreg] = value;
 				PC += 2;
 			}
 			if (id == 0x7000) {
+				logAsm("add V[" + ((args & 0xF00) >> 8) + "]," + (byte) (args & 0x0ff));
 				int Xreg = (args & 0x0f00) >> 8;
 				byte value = (byte) (args & 0x0ff);
 				regV[Xreg] = (byte) ((byte) regV[Xreg] + value);
@@ -337,29 +348,34 @@ public class CPU implements Runnable {
 				byte Xreg = (byte) ((args & 0x0f00) >> 8);
 				byte Yreg = (byte) ((args & 0x00f0) >> 4);
 				if (mathInstId == 0x0000) {
+					logAsm("ld V[" + Xreg + "]," + (byte) (args & 0x0ff));
 					regV[Xreg] = regV[Yreg];
 				}
 				if (mathInstId == 0x0001) {
+					logAsm("or V[" + Xreg + "],V[" + Yreg + "]");
 					regV[Xreg] = (byte) (regV[Xreg] | regV[Yreg]);
 				}
 				if (mathInstId == 0x0002) {
+					logAsm("and V[" + Xreg + "],V[" + Yreg + "]");
 					regV[Xreg] = (byte) (regV[Xreg] & regV[Yreg]);
 				}
 				if (mathInstId == 0x0003) {
+					logAsm("xor V[" + Xreg + "],V[" + Yreg + "]");
 					regV[Xreg] = (byte) (regV[Xreg] ^ regV[Yreg]);
 				}
 				if (mathInstId == 0x0004) {
-
+					logAsm("addcarry V[" + Xreg + "],V[" + Yreg + "]");
 					if ((regV[Xreg] + regV[Yreg]) > 255) {
 
 						regV[0xf] = 1;
-						regV[Xreg] = (byte)0xFF;
+						regV[Xreg] = (byte) 0xFF;
 
 					} else {
 						regV[Xreg] = (byte) (regV[Xreg] + regV[Yreg]);
 					}
 				}
 				if (mathInstId == 0x0005) {
+					logAsm("subcarry V[" + Xreg + "],V[" + Yreg + "]");
 					if ((regV[Xreg] > regV[Yreg])) {
 
 						regV[0xf] = 1;
@@ -370,10 +386,12 @@ public class CPU implements Runnable {
 					}
 				}
 				if (mathInstId == 0x0006) {
+					logAsm("rsftob V[" + Xreg + "]");
 					regV[0xf] = (byte) (regV[Xreg] & 0x000f);
 					regV[Xreg] = (byte) ((regV[Xreg] >> 1) & 0xFF);
 				}
 				if (mathInstId == 0x0007) {
+					logAsm("subcarry V[" + Xreg + "],V[" + Yreg + "]");
 					if ((regV[Xreg] < regV[Yreg])) {
 
 						regV[0xf] = 1;
@@ -385,41 +403,49 @@ public class CPU implements Runnable {
 
 				}
 				if (mathInstId == 0x000e) {
+					logAsm("lsftob V[" + Xreg + "]");
 					regV[0xf] = (byte) (regV[Xreg] & 0x80);
 					regV[Xreg] = (byte) ((regV[Xreg] << 1) & 0xFF);
 				}
 				PC += 2;
 			}
 			if (id == 0x9000) {
+				
 				int Xreg = ((args & 0x0f00) >> 8);
 				int Yreg = ((args & 0x00f0) >> 4);
+				logAsm("jmpifneq V[" + Xreg + "],V[" + Yreg + "]");
 				if (regV[Xreg] != regV[Yreg]) {
 					PC += 4;
+				} else {
+					PC += 2;
 				}
 			}
 			if (id == 0xA000) {
+				
 				I = (short) (args & 0x0fff);
+				logAsm("ld "+I);
 				PC += 2;
 			}
 			if (id == 0xb000) {
+				logAsm("jmplded"+(args & 0x0fff));
 				PC = (args & 0x0fff) + I;
 			}
 			if (id == 0xc000) {
+				logAsm("rndand" + ((args & 0xf00) >> 8) + ","+(args & 0xff)+"");
 				int Xreg = (args & 0xf00) >> 8;
-				int rand = new Random().nextInt(1024) + 1;
-				int rand2 = new Random().nextInt(128) + 1;
-				regV[Xreg] = (byte) Byte.toUnsignedInt((byte) ((rand ^ rand2) & 0xff));
+				regV[Xreg] = (byte) ((byte) r.nextInt(255) & (args & 0xff));
 				PC += 2;
 			}
 			if (id == 0xd000) {
+				logAsm("drw V[" + ((args & 0xF00) >> 8) + "],V[" + (byte) ((args & 0x0f0)>>4) + "]," + (args & 0xf));
 				// Draw
 				// Tela 64*32
-				int valX = Byte.toUnsignedInt(regV[(args & 0xf00) >> 8]);
-				int valY = Byte.toUnsignedInt(regV[(args & 0xf0) >> 4]);
+				short valX = (short) Byte.toUnsignedInt(regV[(args & 0xf00) >> 8]);
+				short valY = (short) Byte.toUnsignedInt(regV[(args & 0xf0) >> 4]);
 				int height = args & 0xf;
 				regV[0xf] = 0;
 				for (int Y = 0; Y < height; Y++) {
-					int pixel = Byte.toUnsignedInt(memory[I + Y]);
+					byte pixel = (memory[I + Y]);
 					for (int X = 0; X < 8; X++) {
 						if ((pixel & (0x80 >> X)) != 0) {
 							if (screen[(valX + X + ((valY + Y) * 64))] == 1) {
@@ -455,14 +481,14 @@ public class CPU implements Runnable {
 			if (id == 0xf000) {
 				if (0x07 == (args & 0xff)) {
 					int Xreg = (args & 0xf00) >> 8;
-					regV[Xreg] = (byte)Timers.getDelayTimer();
+					regV[Xreg] = (byte) Timers.getDelayTimer();
 					PC += 2;
 				}
 				if (0x0a == (args & 0xff)) {
 					// To be implemented
 					int Xreg = (args & 0xf00) >> 8;
-						regV[Xreg] = (byte) lastPressed;
-						PC += 2;
+					regV[Xreg] = (byte) lastPressed;
+					PC += 2;
 				}
 				if (0x15 == (args & 0xff)) {
 					int Xreg = (args & 0xf00) >> 8;
@@ -486,8 +512,10 @@ public class CPU implements Runnable {
 					PC += 2;
 				}
 				if (0x33 == (args & 0xff)) {
+					logAsm("BCD " + (args & 0xff));
 					int Xreg = (args & 0xf00) >> 8;
 					short value = regV[Xreg];
+					logAsm("BCD " + value);
 					memory[I] = (byte) (value / 100);
 					memory[I] = (byte) ((value / 10) % 10);
 					memory[I] = (byte) ((value % 100) % 10);
@@ -510,7 +538,7 @@ public class CPU implements Runnable {
 
 				}
 			}
-			
+
 		}
 
 	}

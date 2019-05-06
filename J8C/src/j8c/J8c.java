@@ -26,18 +26,18 @@ public class J8c {
      */
     public static void main(String[] args) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
 
-        // TODO code application logic here
-        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        String url = "";
-        JFileChooser fileChooser = new JFileChooser();
-        int returnValue = fileChooser.showOpenDialog(fileChooser);
-        if (returnValue == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            RomLoader.getInstance().setRom(file);
-        }
-        CPU cpu =new CPU();
-        cpu.init();
-      
+//        // TODO code application logic here
+//        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+//        String url = "";
+//        JFileChooser fileChooser = new JFileChooser();
+//        int returnValue = fileChooser.showOpenDialog(fileChooser);
+//        if (returnValue == JFileChooser.APPROVE_OPTION) {
+//            File file = fileChooser.getSelectedFile();
+//            RomLoader.getInstance().setRom(file);
+//        }
+//        CPU cpu =new CPU();
+//        cpu.init();
+//      
     }
 
 }
