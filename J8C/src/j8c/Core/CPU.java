@@ -5,7 +5,6 @@
  */
 package j8c.Core;
 
-import java.io.IOException;
 import java.util.Random;
 
 /**
@@ -27,6 +26,7 @@ public class CPU implements Runnable {
 	private boolean keyIsPressed = false;
 	// private boolean drawFlag = true;
 	private static Thread CPUThread;
+	@SuppressWarnings("unused")
 	private static boolean controllerQueue = false;
 	private static boolean breakTheEmu = false;
 

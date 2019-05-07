@@ -1,7 +1,5 @@
 package j8c.Core;
 
-import java.awt.Toolkit;
-
 public class Timers {
 	private static short soundTimer = 0;
 	private static short delayTimer = 0;

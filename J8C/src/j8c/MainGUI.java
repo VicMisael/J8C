@@ -1,43 +1,35 @@
 package j8c;
 
 import java.awt.BorderLayout;
+import java.awt.Canvas;
+import java.awt.Color;
 import java.awt.EventQueue;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.List;
-import java.awt.Polygon;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Vector;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
 import j8c.Core.CPU;
 import j8c.Core.Keyboard;
 import j8c.Core.RomLoader;
-import j8c.Exceptions.ParametersNotSetException;
-
-import javax.swing.JMenuBar;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.AbstractAction;
-import java.awt.event.ActionEvent;
-import javax.swing.Action;
-import java.awt.event.ActionListener;
-import java.awt.Canvas;
-import java.awt.Color;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.image.BufferedImage;
-
-import javax.swing.UIManager;
 
 public class MainGUI extends JFrame {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private final JMenuBar menuBar = new JMenuBar();
 	private final JMenu FileMenu = new JMenu("File");
@@ -233,7 +225,7 @@ public class MainGUI extends JFrame {
 	public void loadGame() {
 		//System.out.println(canvas.getWidth() + " " + canvas.getHeight());
 		RomLoader.getInstance().resetRom();
-		String url = "";
+		
 		JFileChooser fileChooser = new JFileChooser();
 		int returnValue = fileChooser.showOpenDialog(fileChooser);
 		if (returnValue == JFileChooser.APPROVE_OPTION) {
