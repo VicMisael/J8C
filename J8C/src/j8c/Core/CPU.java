@@ -26,6 +26,8 @@ public class CPU implements Runnable {
 	private boolean keyIsPressed = false;
 	// private boolean drawFlag = true;
 	private static Thread CPUThread;
+
+	private static boolean pause = false;
 	@SuppressWarnings("unused")
 	private static boolean controllerQueue = false;
 	private static boolean breakTheEmu = false;
@@ -55,11 +57,13 @@ public class CPU implements Runnable {
 	public void run() {
 
 		while (!breakTheEmu) {
-			cycle();
-			Keys = Keyboard.getKeyArray();
-			lastPressed = Keyboard.getLastPressed();
-			controllerQueue = false;
+			if (!pause) {
+				cycle();
+				Keys = Keyboard.getKeyArray();
+				lastPressed = Keyboard.getLastPressed();
+				controllerQueue = false;
 
+			}
 		}
 
 	}
@@ -136,6 +140,9 @@ public class CPU implements Runnable {
 		Graphics.cleanBl();
 		Stack.reset();
 
+	}
+	public void pauseCPU() {
+		pause=!pause;
 	}
 
 	public void PressedKeyInterrupt() {
@@ -221,7 +228,7 @@ public class CPU implements Runnable {
 		int instructionId = (opcode & 0xf000);
 		int instructionArgs = (opcode & 0x0fff);
 		new Instruction(instructionId, instructionArgs).execute();
-		//System.out.println(Integer.toHexString(opcode));
+		// System.out.println(Integer.toHexString(opcode));
 
 	}
 
@@ -257,7 +264,7 @@ public class CPU implements Runnable {
 		int args = 0;
 
 		public void logAsm(String asm) {
-			 System.out.println(asm);
+			System.out.println(asm);
 		}
 
 		public Instruction(int id, int args) {
@@ -286,7 +293,7 @@ public class CPU implements Runnable {
 			if (id == 0x1000) {
 				logAsm("goto " + (args));
 				PC = args;
-			
+
 			}
 			if (id == 0x2000) {
 				logAsm("call " + (args));
@@ -532,8 +539,8 @@ public class CPU implements Runnable {
 				}
 				if (0x55 == (args & 0xff)) {
 					int copyIndex = (args & 0xf00) >> 8;
-					logAsm("rgdump [" + I + "],V["+copyIndex+"]");
-					
+					logAsm("rgdump [" + I + "],V[" + copyIndex + "]");
+
 					for (int i = 0; i <= copyIndex; i++) {
 						memory[I + i] = regV[i];
 					}
@@ -541,7 +548,7 @@ public class CPU implements Runnable {
 				}
 				if (0x65 == (args & 0xff)) {
 					int copyIndex = (args & 0xf00) >> 8;
-					logAsm("memdump V[" + copyIndex + "],"+copyIndex+"");
+					logAsm("memdump V[" + copyIndex + "]," + copyIndex + "");
 					for (int i = 0; i <= copyIndex; i++) {
 						regV[i] = memory[I + i];
 					}

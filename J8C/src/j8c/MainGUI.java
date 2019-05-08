@@ -38,6 +38,7 @@ public class MainGUI extends JFrame {
 	private final JMenuItem mntmNewMenuItem_2 = new JMenuItem("Start");
 	private final JMenuItem mntmNewMenuItem = new JMenuItem("Load Rom");
 	private static final Canvas canvas = new Canvas();
+	private final JMenuItem mntmPause = new JMenuItem("Pause");
 
 	/**
 	 * Launch the application.
@@ -101,6 +102,13 @@ public class MainGUI extends JFrame {
 		});
 
 		mnNewMenu.add(mntmNewMenuItem_1);
+		mntmPause.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				pauseEmulation();
+			}
+		});
+		
+		mnNewMenu.add(mntmPause);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -220,6 +228,9 @@ public class MainGUI extends JFrame {
 	public static void stopEmulation() {
 		CPU.getInstance().stopCPU();
 
+	}
+	public static void pauseEmulation() {
+		CPU.getInstance().pauseCPU();
 	}
 
 	public void loadGame() {
