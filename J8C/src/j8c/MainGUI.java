@@ -23,6 +23,7 @@ import javax.swing.border.EmptyBorder;
 import j8c.Core.CPU;
 import j8c.Core.Keyboard;
 import j8c.Core.RomLoader;
+import javax.swing.JButton;
 
 public class MainGUI extends JFrame {
 
@@ -39,6 +40,7 @@ public class MainGUI extends JFrame {
 	private final JMenuItem mntmNewMenuItem = new JMenuItem("Load Rom");
 	private static final Canvas canvas = new Canvas();
 	private final JMenuItem mntmPause = new JMenuItem("Pause");
+	private final JMenuItem mntmDebugger = new JMenuItem("Debugger");
 
 	/**
 	 * Launch the application.
@@ -62,10 +64,10 @@ public class MainGUI extends JFrame {
 		setTitle("JC8");
 		initComponents();
 		try {
-			  UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-			} catch(Exception e) {
-			  System.out.println("Error setting native LAF: " + e);
-			}
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e) {
+			System.out.println("Error setting native LAF: " + e);
+		}
 
 	}
 
@@ -107,8 +109,16 @@ public class MainGUI extends JFrame {
 				pauseEmulation();
 			}
 		});
-		
+
 		mnNewMenu.add(mntmPause);
+		mntmDebugger.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Debugger.getInstance().setVisible(true);
+				
+			}
+		});
+
+		mnNewMenu.add(mntmDebugger);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -192,8 +202,6 @@ public class MainGUI extends JFrame {
 		contentPane.add(canvas, BorderLayout.CENTER);
 	}
 
-
-
 	public static void startEmulation() {
 
 		canvas.setBackground(new Color(0, 0, 0));
@@ -212,10 +220,10 @@ public class MainGUI extends JFrame {
 		int value = 0;
 		for (int y = 0; y < 32; y++) {
 			for (int x = 0; x < 64; x++) {
-				value=0x0;
+				value = 0x0;
 				if (screen[x + y * 64] != 0) {
 					value = 0xffffff;
-				} 
+				}
 
 				bimage.setRGB(x, y, value);
 			}
@@ -229,14 +237,15 @@ public class MainGUI extends JFrame {
 		CPU.getInstance().stopCPU();
 
 	}
+
 	public static void pauseEmulation() {
 		CPU.getInstance().pauseCPU();
 	}
 
 	public void loadGame() {
-		//System.out.println(canvas.getWidth() + " " + canvas.getHeight());
+		// System.out.println(canvas.getWidth() + " " + canvas.getHeight());
 		RomLoader.getInstance().resetRom();
-		
+
 		JFileChooser fileChooser = new JFileChooser();
 		int returnValue = fileChooser.showOpenDialog(fileChooser);
 		if (returnValue == JFileChooser.APPROVE_OPTION) {
