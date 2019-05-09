@@ -196,7 +196,7 @@ public class CPU implements Runnable {
 	}
 
 	public void logToRegisterWatch() {
-		Debugger.getInstance().updateRegisters(regV,I);
+		Debugger.getInstance().updateRegisters(regV, I);
 	}
 
 	private void loadMemory() {
@@ -280,6 +280,10 @@ public class CPU implements Runnable {
 			}
 		}
 
+		public int toUnsignedInt(byte value) {
+			return ((int) value) & 0xff;
+		}
+
 		public Instruction(int id, int args) {
 			this.id = id;
 			this.args = args;
@@ -346,17 +350,17 @@ public class CPU implements Runnable {
 				}
 			}
 			if (id == 0x6000) {
-				logToDebugger("ld V[" + ((args & 0xF00) >> 8) + "]," + Byte.toUnsignedInt((byte) (args & 0x0ff)));
+				logToDebugger("ld V[" + ((args & 0xF00) >> 8) + "]," + toUnsignedInt((byte) (args & 0x0ff)));
 				int Xreg = (args & 0x0f00) >> 8;
-				byte value = (byte) (args & 0x0ff);
+				byte value = (byte) toUnsignedInt((byte) (args & 0xff));
 				regV[Xreg] = value;
 				PC += 2;
 			}
 			if (id == 0x7000) {
-				logToDebugger("add V[" + ((args & 0xF00) >> 8) + "]," + (byte) (args & 0x0ff));
+				logToDebugger("add V[" + ((args & 0xF00) >> 8) + "]," + toUnsignedInt((byte) (args & 0x0ff)));
 				int Xreg = (args & 0x0f00) >> 8;
 				byte value = (byte) (args & 0x0ff);
-				regV[Xreg] = (byte) ((byte) regV[Xreg] + value);
+				regV[Xreg] = (byte) ((byte) regV[Xreg] + (byte) value);
 				PC += 2;
 			}
 			if (id == 0x8000) {
@@ -365,7 +369,7 @@ public class CPU implements Runnable {
 				byte Xreg = (byte) ((args & 0x0f00) >> 8);
 				byte Yreg = (byte) ((args & 0x00f0) >> 4);
 				if (mathInstId == 0x0000) {
-					logToDebugger("ld V[" + Xreg + "]," + (byte) (args & 0x0ff));
+					logToDebugger("ld V[" + Xreg + "]," + "V[" + Yreg + "]");
 					regV[Xreg] = regV[Yreg];
 				}
 				if (mathInstId == 0x0001) {
@@ -393,13 +397,13 @@ public class CPU implements Runnable {
 				}
 				if (mathInstId == 0x0005) {
 					logToDebugger("subcarry V[" + Xreg + "],V[" + Yreg + "]");
-					if ((regV[Xreg] > regV[Yreg])) {
+					if (toUnsignedInt(regV[Xreg]) > toUnsignedInt(regV[Yreg])) {
 
 						regV[0xf] = 1;
-						regV[Xreg] = (byte) (regV[Yreg] - regV[Xreg]);
+						regV[Xreg] = (byte) (toUnsignedInt(regV[Yreg]) - toUnsignedInt(regV[Xreg]));
 
 					} else {
-						regV[Xreg] = (byte) (regV[Xreg] - regV[Yreg]);
+						regV[Xreg] = (byte) (toUnsignedInt(regV[Xreg]) - toUnsignedInt(regV[Yreg]));
 					}
 				}
 				if (mathInstId == 0x0006) {
@@ -412,10 +416,11 @@ public class CPU implements Runnable {
 					if ((regV[Xreg] < regV[Yreg])) {
 
 						regV[0xf] = 1;
-						regV[Xreg] = (byte) (regV[Yreg] - regV[Xreg]);
+						regV[Xreg] = (byte) toUnsignedInt(
+								(byte) (toUnsignedInt(regV[Yreg]) - toUnsignedInt(regV[Xreg])));
 
 					} else {
-						regV[Xreg] = (byte) (regV[Xreg] - regV[Yreg]);
+						regV[Xreg] = (byte) (toUnsignedInt(regV[Xreg]) - toUnsignedInt(regV[Yreg]));
 					}
 
 				}
@@ -458,14 +463,15 @@ public class CPU implements Runnable {
 						"drw V[" + ((args & 0xF00) >> 8) + "],V[" + (byte) ((args & 0x0f0) >> 4) + "]," + (args & 0xf));
 				// Draw
 				// Tela 64*32
-				short valX = (short) Byte.toUnsignedInt(regV[(args & 0xf00) >> 8]);
-				short valY = (short) Byte.toUnsignedInt(regV[(args & 0xf0) >> 4]);
+				short valX = (short) toUnsignedInt(regV[(args & 0xf00) >> 8]);
+				short valY = (short) toUnsignedInt(regV[(args & 0xf0) >> 4]);
 				int height = args & 0xf;
 				regV[0xf] = 0;
 				for (int Y = 0; Y < height; Y++) {
 					byte pixel = (memory[I + Y]);
 					for (int X = 0; X < 8; X++) {
-						if ((Byte.toUnsignedInt(pixel) & (0x80 >> X)) != 0) {
+						int num =pixel & (0x80 >> X);
+						if (num != 0) {
 							if (screen[(valX + X + ((valY + Y) * 64))] == 1) {
 								regV[0xf] = 1;
 							}
@@ -537,13 +543,13 @@ public class CPU implements Runnable {
 					int Xreg = (args & 0xf00) >> 8;
 //					I = charAddress[regV[Xreg]];
 					logToDebugger("ldspr V[" + Xreg + "]");
-					I = (short) Byte.toUnsignedInt((byte) (regV[Xreg] * 0x5));
+					I = (short) toUnsignedInt((byte) (regV[Xreg] * 0x5));
 					PC += 2;
 				}
 				if (0x33 == (args & 0xff)) {
 
 					int Xreg = (args & 0xf00) >> 8;
-					short value = (short) Byte.toUnsignedInt(regV[Xreg]);
+					short value = (short) toUnsignedInt(regV[Xreg]);
 					logToDebugger("BCD V[" + Xreg + "]");
 					memory[I] = (byte) (value / 100);
 					memory[I] = (byte) ((value / 10) % 10);

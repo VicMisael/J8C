@@ -15,6 +15,8 @@ import java.awt.Color;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 
 public class Debugger extends JFrame {
 
@@ -34,10 +36,12 @@ public class Debugger extends JFrame {
 	 * Create the frame.
 	 */
 	private Debugger() {
+	
 		setAutoRequestFocus(false);
 		setResizable(false);
 		setType(Type.UTILITY);
 		setTitle("Debugger");
+	
 		setBackground(Color.WHITE);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 479, 343);
@@ -49,7 +53,7 @@ public class Debugger extends JFrame {
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setBounds(0, 0, 157, 292);
 		contentPane.add(scrollPane);
-
+		
 		table = new JTable();
 		table.setFillsViewportHeight(true);
 		table.setEnabled(false);
@@ -75,7 +79,7 @@ public class Debugger extends JFrame {
 			return false;
 
 		} else {
-			return deb.isActive();
+			return true;
 		}
 
 	}
@@ -84,9 +88,8 @@ public class Debugger extends JFrame {
 		DefaultTableModel model = (DefaultTableModel) table.getModel();
 		for (int a = 0; a < model.getRowCount(); a++) {
 			if (a < 16) {
-				model.setValueAt(Registers[a], a, 1);
-			}
-			else {
+				model.setValueAt(Byte.toUnsignedInt(Registers[a]), a, 1);
+			} else {
 				model.setValueAt(I, a, 1);
 			}
 		}

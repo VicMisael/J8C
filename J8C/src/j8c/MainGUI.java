@@ -23,7 +23,6 @@ import javax.swing.border.EmptyBorder;
 import j8c.Core.CPU;
 import j8c.Core.Keyboard;
 import j8c.Core.RomLoader;
-import javax.swing.JButton;
 
 public class MainGUI extends JFrame {
 
