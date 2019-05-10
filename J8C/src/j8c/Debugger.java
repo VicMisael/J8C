@@ -9,6 +9,8 @@ import javax.swing.border.EmptyBorder;
 import java.awt.Window.Type;
 import javax.swing.JTable;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
+
 import java.awt.List;
 import javax.swing.ListSelectionModel;
 import java.awt.Color;
@@ -17,6 +19,12 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import javax.swing.JTextField;
+import javax.swing.JButton;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class Debugger extends JFrame {
 
@@ -27,6 +35,9 @@ public class Debugger extends JFrame {
 	private JPanel contentPane;
 	private static Debugger deb;
 	private JTable table;
+	private boolean isOpen=false;
+	private JTextField sleepTime;
+	private int sleepTimeVar = 1;
 
 	/**
 	 * Launch the application.
@@ -36,12 +47,22 @@ public class Debugger extends JFrame {
 	 * Create the frame.
 	 */
 	private Debugger() {
-	
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosed(WindowEvent e) {
+				isOpen=false;
+			}
+			@Override
+			public void windowOpened(WindowEvent e) {
+				isOpen=true;
+			}
+		});
+
 		setAutoRequestFocus(false);
 		setResizable(false);
 		setType(Type.UTILITY);
 		setTitle("Debugger");
-	
+
 		setBackground(Color.WHITE);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 479, 343);
@@ -53,7 +74,7 @@ public class Debugger extends JFrame {
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setBounds(0, 0, 157, 292);
 		contentPane.add(scrollPane);
-		
+
 		table = new JTable();
 		table.setFillsViewportHeight(true);
 		table.setEnabled(false);
@@ -64,6 +85,36 @@ public class Debugger extends JFrame {
 				{ "V[8]", null }, { "V[9]", null }, { "V[10]", null }, { "V[11]", null }, { "V[12]", null },
 				{ "V[13]", null }, { "V[14]", null }, { "V[15]", null }, { "I", null }, },
 				new String[] { "Registers", "Values" }));
+
+		sleepTime = new JTextField();
+		sleepTime.setText("1");
+		sleepTime.setBounds(167, 236, 86, 20);
+		contentPane.add(sleepTime);
+		sleepTime.setColumns(10);
+
+		JButton updateSleep = new JButton("Update");
+		updateSleep.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String timer = sleepTime.getText();
+				if (!timer.isEmpty()) {
+					if (timer.matches("[0-9]+")) {
+						sleepTimeVar = Integer.valueOf(timer);
+					}else {
+						JOptionPane.showMessageDialog(Debugger.getInstance(), "You should use only numbers", "JC8",
+								JOptionPane.ERROR_MESSAGE);
+						sleepTime.setText("1");
+					}
+
+				} else {
+					JOptionPane.showMessageDialog(Debugger.getInstance(), "This field may not be empty", "JC8",
+							JOptionPane.ERROR_MESSAGE);
+					sleepTime.setText("1");
+				}
+
+			}
+		});
+		updateSleep.setBounds(167, 269, 89, 23);
+		contentPane.add(updateSleep);
 
 	}
 
@@ -79,11 +130,13 @@ public class Debugger extends JFrame {
 			return false;
 
 		} else {
-			return true;
+			return Debugger.getInstance().isOpen;
 		}
 
 	}
-
+	public int getSleepTimer() {
+		return this.sleepTimeVar;
+	}
 	public void updateRegisters(byte[] Registers, int I) {
 		DefaultTableModel model = (DefaultTableModel) table.getModel();
 		for (int a = 0; a < model.getRowCount(); a++) {
@@ -95,5 +148,4 @@ public class Debugger extends JFrame {
 		}
 
 	}
-
 }

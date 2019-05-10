@@ -183,12 +183,22 @@ public class CPU implements Runnable {
 		decodeExecute();
 		if (Debugger.isDebuggerStarted()) {
 			logToRegisterWatch();
-		}
-		try {
-			Thread.sleep(1);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			int sleepTime=Debugger.getInstance().getSleepTimer();
+			try {
+				Thread.sleep(sleepTime);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		} else {
+
+			try {
+				Thread.sleep(1);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		// Timers.setAfter(System.nanoTime());
 		// Timers.calculate();
@@ -455,6 +465,8 @@ public class CPU implements Runnable {
 			if (id == 0xc000) {
 				logToDebugger("rndand" + ((args & 0xf00) >> 8) + "," + (args & 0xff) + "");
 				int Xreg = (args & 0xf00) >> 8;
+
+				//
 				regV[Xreg] = (byte) ((byte) r.nextInt(255) & (args & 0xff));
 				PC += 2;
 			}
@@ -470,7 +482,7 @@ public class CPU implements Runnable {
 				for (int Y = 0; Y < height; Y++) {
 					byte pixel = (memory[I + Y]);
 					for (int X = 0; X < 8; X++) {
-						int num =pixel & (0x80 >> X);
+						int num = pixel & (0x80 >> X);
 						if (num != 0) {
 							if (screen[(valX + X + ((valY + Y) * 64))] == 1) {
 								regV[0xf] = 1;
@@ -552,8 +564,8 @@ public class CPU implements Runnable {
 					short value = (short) toUnsignedInt(regV[Xreg]);
 					logToDebugger("BCD V[" + Xreg + "]");
 					memory[I] = (byte) (value / 100);
-					memory[I] = (byte) ((value / 10) % 10);
-					memory[I] = (byte) ((value % 100) % 10);
+					memory[I + 1] = (byte) ((value / 10) % 10);
+					memory[I + 2] = (byte) ((value % 100) % 10);
 					PC += 2;
 
 				}
