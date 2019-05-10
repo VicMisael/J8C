@@ -1,30 +1,20 @@
 package j8c;
 
-import java.awt.BorderLayout;
-import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-import java.awt.Window.Type;
-import javax.swing.JTable;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-
-import java.awt.List;
-import javax.swing.ListSelectionModel;
 import java.awt.Color;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import javax.swing.JTextField;
-import javax.swing.JButton;
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
 
 public class Debugger extends JFrame {
 
