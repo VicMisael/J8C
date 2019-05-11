@@ -114,7 +114,7 @@ public class CPU implements Runnable {
 		// Charset has been set
 
 		PC = 0x200;
-
+		Stack.reset();
 		loadMemory();
 		CPUThread = new Thread(this);
 		CPUThread.setName("Interpreter");
@@ -183,7 +183,7 @@ public class CPU implements Runnable {
 		decodeExecute();
 		if (Debugger.isDebuggerStarted()) {
 			logToRegisterWatch();
-			int sleepTime=Debugger.getInstance().getSleepTimer();
+			int sleepTime = Debugger.getInstance().getSleepTimer();
 			try {
 				Thread.sleep(sleepTime);
 			} catch (InterruptedException e) {
@@ -206,7 +206,7 @@ public class CPU implements Runnable {
 	}
 
 	public void logToRegisterWatch() {
-		Debugger.getInstance().updateRegisters(regV, I);
+		Debugger.getInstance().updateRegisters(regV, I, Stack.getData(), Stack.getLastOp());
 	}
 
 	private void loadMemory() {
@@ -256,16 +256,27 @@ public class CPU implements Runnable {
 
 		private static int stack[] = new int[16];
 		private static int pointer = 0;
+		private static String lastOp = "null";
 
 		public static void push(int val) {
 			stack[pointer] = val;
 			pointer++;
+			lastOp = "push";
 		}
 
 		public static int pop() {
+			lastOp = "pop";
 			pointer--;
 			return stack[pointer];
 
+		}
+
+		private static String getLastOp() {
+			return lastOp;
+		}
+
+		public static int[] getData() {
+			return stack;
 		}
 
 		public static void reset() {
@@ -370,7 +381,7 @@ public class CPU implements Runnable {
 				logToDebugger("add V[" + ((args & 0xF00) >> 8) + "]," + toUnsignedInt((byte) (args & 0x0ff)));
 				int Xreg = (args & 0x0f00) >> 8;
 				byte value = (byte) (args & 0x0ff);
-				regV[Xreg] = (byte) ((byte) regV[Xreg] + (byte) value);
+				regV[Xreg] = (byte) (toUnsignedInt(regV[Xreg]) + toUnsignedInt((byte) value));
 				PC += 2;
 			}
 			if (id == 0x8000) {
@@ -465,9 +476,9 @@ public class CPU implements Runnable {
 			if (id == 0xc000) {
 				logToDebugger("rndand" + ((args & 0xf00) >> 8) + "," + (args & 0xff) + "");
 				int Xreg = (args & 0xf00) >> 8;
-
+				int nextInt = r.nextInt(255);
 				//
-				regV[Xreg] = (byte) ((byte) r.nextInt(255) & (args & 0xff));
+				regV[Xreg] = (byte) ((byte) nextInt & toUnsignedInt((byte) (args & 0xff)));
 				PC += 2;
 			}
 			if (id == 0xd000) {
@@ -480,14 +491,22 @@ public class CPU implements Runnable {
 				int height = args & 0xf;
 				regV[0xf] = 0;
 				for (int Y = 0; Y < height; Y++) {
-					byte pixel = (memory[I + Y]);
+					int pixel = toUnsignedInt(memory[I + Y]);
 					for (int X = 0; X < 8; X++) {
 						int num = pixel & (0x80 >> X);
 						if (num != 0) {
-							if (screen[(valX + X + ((valY + Y) * 64))] == 1) {
+							int index = (valX + X + ((valY + Y) * 64));
+							if (index >= 2048) {
+								while (index >= 2048) {
+									index = index - 2048;
+								}
+								// Wrap around the screen
+							}
+							if (screen[index] == 1) {
 								regV[0xf] = 1;
 							}
-							screen[(valX + X + (valY + Y) * 64)] ^= 1;
+							screen[index] ^= 1;
+
 						}
 					}
 				}
@@ -548,7 +567,7 @@ public class CPU implements Runnable {
 				if (0x1E == (args & 0xff)) {
 					int Xreg = (args & 0xf00) >> 8;
 					logToDebugger("addi V[" + Xreg + "]");
-					I += regV[Xreg];
+					I += toUnsignedInt(regV[Xreg]);
 					PC += 2;
 				}
 				if (0x29 == (args & 0xff)) {
