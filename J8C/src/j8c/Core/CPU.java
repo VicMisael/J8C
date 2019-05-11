@@ -206,7 +206,7 @@ public class CPU implements Runnable {
 	}
 
 	public void logToRegisterWatch() {
-		Debugger.getInstance().updateRegisters(regV, I, Stack.getData(), Stack.getLastOp(),Stack.getPointer());
+		Debugger.getInstance().updateRegisters(regV, I, Stack.getData(), Stack.getLastOp(), Stack.getPointer());
 	}
 
 	private void loadMemory() {
@@ -278,9 +278,11 @@ public class CPU implements Runnable {
 		public static int[] getData() {
 			return stack;
 		}
-		public static int getPointer(){
+
+		public static int getPointer() {
 			return pointer;
 		}
+
 		public static void reset() {
 			for (int i = 0; i < stack.length; i++) {
 				stack[i] = 0;
@@ -334,7 +336,7 @@ public class CPU implements Runnable {
 			if (id == 0x1000) {
 				logToDebugger("goto " + (args));
 				PC = args;
-
+				
 			}
 			if (id == 0x2000) {
 				logToDebugger("call " + (args));
