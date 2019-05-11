@@ -16,9 +16,6 @@ public class Graphics {
 		}
 		MainGUI.drawToCanvas(screen);
 	}
-	public static void setExecutedInstructionHex(String hex) {
-		
-		
-	}
+
 
 }

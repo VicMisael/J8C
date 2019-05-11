@@ -17,6 +17,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.JLabel;
 import java.awt.Font;
+import javax.swing.JProgressBar;
 
 public class Debugger extends JFrame {
 
@@ -32,6 +33,7 @@ public class Debugger extends JFrame {
 	private int sleepTimeVar = 1;
 	private JTable stack;
 	private JLabel operation;
+	private JProgressBar stackSize;
 
 	/**
 	 * Launch the application.
@@ -153,12 +155,17 @@ public class Debugger extends JFrame {
 		scrollPane_1.setViewportView(stack);
 		
 		JLabel StacklastOp = new JLabel("LastOp:");
-		StacklastOp.setBounds(349, 237, 54, 15);
+		StacklastOp.setBounds(349, 224, 54, 15);
 		contentPane.add(StacklastOp);
 		
 		operation = new JLabel("null");
-		operation.setBounds(408, 237, 53, 15);
+		operation.setBounds(408, 224, 53, 15);
 		contentPane.add(operation);
+		
+		stackSize = new JProgressBar();
+		stackSize.setMaximum(15);
+		stackSize.setBounds(349, 237, 118, 20);
+		contentPane.add(stackSize);
 
 	}
 
@@ -181,7 +188,7 @@ public class Debugger extends JFrame {
 	public int getSleepTimer() {
 		return this.sleepTimeVar;
 	}
-	public void updateRegisters(byte[] Registers, int I,int[] Stack,String lastStackOp) {
+	public void updateRegisters(byte[] Registers, int I,int[] Stack,String lastStackOp,int pointer) {
 		DefaultTableModel model = (DefaultTableModel) registerTable.getModel();
 		for (int a = 0; a < model.getRowCount(); a++) {
 			if (a < 16) {
@@ -196,6 +203,7 @@ public class Debugger extends JFrame {
 			model.setValueAt(Integer.toHexString(Stack[b]), b, 0);
 		}
 		operation.setText(lastStackOp);
+		stackSize.setValue(pointer);
 		
 	}
 }

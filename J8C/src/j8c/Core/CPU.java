@@ -206,7 +206,7 @@ public class CPU implements Runnable {
 	}
 
 	public void logToRegisterWatch() {
-		Debugger.getInstance().updateRegisters(regV, I, Stack.getData(), Stack.getLastOp());
+		Debugger.getInstance().updateRegisters(regV, I, Stack.getData(), Stack.getLastOp(),Stack.getPointer());
 	}
 
 	private void loadMemory() {
@@ -278,7 +278,9 @@ public class CPU implements Runnable {
 		public static int[] getData() {
 			return stack;
 		}
-
+		public static int getPointer(){
+			return pointer;
+		}
 		public static void reset() {
 			for (int i = 0; i < stack.length; i++) {
 				stack[i] = 0;
@@ -320,6 +322,7 @@ public class CPU implements Runnable {
 					for (int i = 0; i < screen.length; ++i) {
 						screen[i] = 0;
 					}
+					Graphics.Draw(screen, "");
 					PC += 2;
 				}
 				if (args == 0x0ee) {
