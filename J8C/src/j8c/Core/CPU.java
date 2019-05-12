@@ -206,7 +206,7 @@ public class CPU implements Runnable {
 	}
 
 	public void logToRegisterWatch() {
-		Debugger.getInstance().updateRegisters(regV, I, Stack.getData(), Stack.getLastOp(), Stack.getPointer());
+		Debugger.getInstance().updateRegisters(regV, I, Stack.getData(), Stack.getLastOp(), Stack.getPointer(), PC);
 	}
 
 	private void loadMemory() {
@@ -286,7 +286,9 @@ public class CPU implements Runnable {
 		public static void reset() {
 			for (int i = 0; i < stack.length; i++) {
 				stack[i] = 0;
+
 			}
+			pointer = 0;
 		}
 	}
 
@@ -501,11 +503,11 @@ public class CPU implements Runnable {
 						byte num = (byte) (pixel & (0x80 >> X));
 						if (num != 0) {
 							int index = (valX + X + ((valY + Y) * 64));
-								while (index >= 2048) {
-									index -= 2048;
-								}
-								// Wrap around the screen
-							
+							while (index >= 2048) {
+								index -= 2048;
+							}
+							// Wrap around the screen
+
 							if (screen[index] == 1) {
 								regV[0xf] = 1;
 							}

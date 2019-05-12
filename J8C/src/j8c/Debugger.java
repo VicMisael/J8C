@@ -36,6 +36,8 @@ public class Debugger extends JFrame {
 	private JLabel operation;
 	private JProgressBar stackSize;
 	private JCheckBox chckbxShowInHex;
+	private JLabel lblPc;
+	private JLabel programCounter;
 
 	/**
 	 * Launch the application.
@@ -62,10 +64,10 @@ public class Debugger extends JFrame {
 		setType(Type.UTILITY);
 		setTitle("Debugger");
 
-		setBackground(Color.WHITE);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setBounds(100, 100, 479, 384);
 		contentPane = new JPanel();
+
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
@@ -88,7 +90,7 @@ public class Debugger extends JFrame {
 
 		sleepTime = new JTextField();
 		sleepTime.setText("1");
-		sleepTime.setBounds(169, 31, 86, 20);
+		sleepTime.setBounds(169, 31, 54, 20);
 		contentPane.add(sleepTime);
 		sleepTime.setColumns(10);
 
@@ -113,16 +115,16 @@ public class Debugger extends JFrame {
 
 			}
 		});
-		updateSleep.setBounds(169, 64, 89, 23);
+		updateSleep.setBounds(168, 62, 73, 23);
 		contentPane.add(updateSleep);
 
-		JLabel lblCpuThreadSleep = new JLabel("CPU Thread Sleep Time");
+		JLabel lblCpuThreadSleep = new JLabel("CPU Sleep time");
 		lblCpuThreadSleep.setFont(new Font("Tahoma", Font.PLAIN, 9));
-		lblCpuThreadSleep.setBounds(169, 6, 102, 14);
+		lblCpuThreadSleep.setBounds(169, 6, 72, 14);
 		contentPane.add(lblCpuThreadSleep);
 
 		JLabel lblMs = new JLabel("ms");
-		lblMs.setBounds(265, 34, 46, 14);
+		lblMs.setBounds(227, 34, 19, 14);
 		contentPane.add(lblMs);
 
 		JScrollPane scrollPane_1 = new JScrollPane();
@@ -147,14 +149,23 @@ public class Debugger extends JFrame {
 		contentPane.add(operation);
 
 		stackSize = new JProgressBar();
+		stackSize.setValue(10);
 		stackSize.setMaximum(15);
 		stackSize.setBounds(349, 237, 118, 20);
 		contentPane.add(stackSize);
 
 		chckbxShowInHex = new JCheckBox("Show In HEX");
-		chckbxShowInHex.setSelected(true);
 		chckbxShowInHex.setBounds(10, 307, 97, 23);
 		contentPane.add(chckbxShowInHex);
+
+		lblPc = new JLabel("PC:");
+		lblPc.setBounds(253, 7, 33, 15);
+		contentPane.add(lblPc);
+
+		programCounter = new JLabel("PC");
+		programCounter.setBackground(Color.WHITE);
+		programCounter.setBounds(275, 7, 53, 15);
+		contentPane.add(programCounter);
 
 	}
 
@@ -179,20 +190,20 @@ public class Debugger extends JFrame {
 		return this.sleepTimeVar;
 	}
 
-	public void updateRegisters(byte[] Registers, short I, int[] Stack, String lastStackOp, int pointer) {
+	public void updateRegisters(byte[] Registers, short I, int[] Stack, String lastStackOp, int pointer, int PC) {
 		DefaultTableModel model = (DefaultTableModel) registerTable.getModel();
 
 		if (chckbxShowInHex.isSelected()) {
 			for (int a = 0; a < model.getRowCount(); a++) {
 				if (a < 16) {
-					model.setValueAt(Integer.toHexString(Byte.toUnsignedInt(Registers[a])), a, 1);
+					model.setValueAt("0x" + Integer.toHexString(Byte.toUnsignedInt(Registers[a])), a, 1);
 				} else {
-					model.setValueAt(Integer.toHexString(I), a, 1);
+					model.setValueAt("0x" + Integer.toHexString(I), a, 1);
 				}
 			}
 		} else {
 			for (int a = 0; a < model.getRowCount(); a++) {
-			
+
 				if (a < 16) {
 					model.setValueAt(Byte.toUnsignedInt(Registers[a]), a, 1);
 				} else {
@@ -203,9 +214,13 @@ public class Debugger extends JFrame {
 
 		model = (DefaultTableModel) stack.getModel();
 		for (int b = 0; b < model.getRowCount(); b++) {
-
-			model.setValueAt(Integer.toHexString(Stack[b]), b, 0);
+			if (chckbxShowInHex.isSelected()) {
+				model.setValueAt("0x" + Integer.toHexString(Stack[b]), b, 0);
+			} else {
+				model.setValueAt(Stack[b], b, 0);
+			}
 		}
+		programCounter.setText(chckbxShowInHex.isSelected() ? "0x" + Integer.toHexString(PC) : Integer.toString(PC));
 		operation.setText(lastStackOp);
 		stackSize.setValue(pointer);
 
