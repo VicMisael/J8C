@@ -18,6 +18,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.JLabel;
 import java.awt.Font;
 import javax.swing.JProgressBar;
+import javax.swing.JCheckBox;
 
 public class Debugger extends JFrame {
 
@@ -28,12 +29,13 @@ public class Debugger extends JFrame {
 	private JPanel contentPane;
 	private static Debugger deb;
 	private JTable registerTable;
-	private boolean isOpen=false;
+	private boolean isOpen = false;
 	private JTextField sleepTime;
 	private int sleepTimeVar = 1;
 	private JTable stack;
 	private JLabel operation;
 	private JProgressBar stackSize;
+	private JCheckBox chckbxShowInHex;
 
 	/**
 	 * Launch the application.
@@ -46,11 +48,12 @@ public class Debugger extends JFrame {
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosed(WindowEvent e) {
-				isOpen=false;
+				isOpen = false;
 			}
+
 			@Override
 			public void windowOpened(WindowEvent e) {
-				isOpen=true;
+				isOpen = true;
 			}
 		});
 
@@ -77,10 +80,10 @@ public class Debugger extends JFrame {
 		registerTable.setFillsViewportHeight(true);
 		scrollPane.setViewportView(registerTable);
 		registerTable.setRowSelectionAllowed(false);
-		registerTable.setModel(new DefaultTableModel(new Object[][] { { "V[0]", "" }, { "V[1]", null }, { "V[2]", null },
-				{ "V[3]", null }, { "V[4]", null }, { "V[5]", null }, { "V[6]", null }, { "V[7]", null },
-				{ "V[8]", null }, { "V[9]", null }, { "V[10]", null }, { "V[11]", null }, { "V[12]", null },
-				{ "V[13]", null }, { "V[14]", null }, { "V[15]", null }, { "I", null }, },
+		registerTable.setModel(new DefaultTableModel(new Object[][] { { "V[0]", "" }, { "V[1]", null },
+				{ "V[2]", null }, { "V[3]", null }, { "V[4]", null }, { "V[5]", null }, { "V[6]", null },
+				{ "V[7]", null }, { "V[8]", null }, { "V[9]", null }, { "V[10]", null }, { "V[11]", null },
+				{ "V[12]", null }, { "V[13]", null }, { "V[14]", null }, { "V[15]", null }, { "I", null }, },
 				new String[] { "Registers", "Values" }));
 
 		sleepTime = new JTextField();
@@ -96,7 +99,7 @@ public class Debugger extends JFrame {
 				if (!timer.isEmpty()) {
 					if (timer.matches("[0-9]+")) {
 						sleepTimeVar = Integer.valueOf(timer);
-					}else {
+					} else {
 						JOptionPane.showMessageDialog(Debugger.getInstance(), "You should use only numbers", "JC8",
 								JOptionPane.ERROR_MESSAGE);
 						sleepTime.setText("1");
@@ -112,60 +115,46 @@ public class Debugger extends JFrame {
 		});
 		updateSleep.setBounds(169, 64, 89, 23);
 		contentPane.add(updateSleep);
-		
+
 		JLabel lblCpuThreadSleep = new JLabel("CPU Thread Sleep Time");
 		lblCpuThreadSleep.setFont(new Font("Tahoma", Font.PLAIN, 9));
 		lblCpuThreadSleep.setBounds(169, 6, 102, 14);
 		contentPane.add(lblCpuThreadSleep);
-		
+
 		JLabel lblMs = new JLabel("ms");
 		lblMs.setBounds(265, 34, 46, 14);
 		contentPane.add(lblMs);
-		
+
 		JScrollPane scrollPane_1 = new JScrollPane();
 		scrollPane_1.setBounds(349, 6, 118, 219);
 		contentPane.add(scrollPane_1);
-		
+
 		stack = new JTable();
 		stack.setModel(new DefaultTableModel(
-			new Object[][] {
-				{null},
-				{null},
-				{null},
-				{null},
-				{null},
-				{null},
-				{null},
-				{null},
-				{null},
-				{null},
-				{null},
-				{null},
-				{null},
-				{null},
-				{null},
-				{null},
-			},
-			new String[] {
-				"Stack"
-			}
-		));
+				new Object[][] { { null }, { null }, { null }, { null }, { null }, { null }, { null }, { null },
+						{ null }, { null }, { null }, { null }, { null }, { null }, { null }, { null }, },
+				new String[] { "Stack" }));
 		stack.getColumnModel().getColumn(0).setPreferredWidth(94);
 		stack.setShowHorizontalLines(true);
 		scrollPane_1.setViewportView(stack);
-		
+
 		JLabel StacklastOp = new JLabel("LastOp:");
 		StacklastOp.setBounds(349, 224, 54, 15);
 		contentPane.add(StacklastOp);
-		
+
 		operation = new JLabel("null");
 		operation.setBounds(408, 224, 53, 15);
 		contentPane.add(operation);
-		
+
 		stackSize = new JProgressBar();
 		stackSize.setMaximum(15);
 		stackSize.setBounds(349, 237, 118, 20);
 		contentPane.add(stackSize);
+
+		chckbxShowInHex = new JCheckBox("Show In HEX");
+		chckbxShowInHex.setSelected(true);
+		chckbxShowInHex.setBounds(10, 307, 97, 23);
+		contentPane.add(chckbxShowInHex);
 
 	}
 
@@ -185,25 +174,40 @@ public class Debugger extends JFrame {
 		}
 
 	}
+
 	public int getSleepTimer() {
 		return this.sleepTimeVar;
 	}
-	public void updateRegisters(byte[] Registers, int I,int[] Stack,String lastStackOp,int pointer) {
+
+	public void updateRegisters(byte[] Registers, short I, int[] Stack, String lastStackOp, int pointer) {
 		DefaultTableModel model = (DefaultTableModel) registerTable.getModel();
-		for (int a = 0; a < model.getRowCount(); a++) {
-			if (a < 16) {
-				model.setValueAt(Byte.toUnsignedInt(Registers[a]), a, 1);
-			} else {
-				model.setValueAt(I, a, 1);
+
+		if (chckbxShowInHex.isSelected()) {
+			for (int a = 0; a < model.getRowCount(); a++) {
+				if (a < 16) {
+					model.setValueAt(Integer.toHexString(Byte.toUnsignedInt(Registers[a])), a, 1);
+				} else {
+					model.setValueAt(Integer.toHexString(I), a, 1);
+				}
+			}
+		} else {
+			for (int a = 0; a < model.getRowCount(); a++) {
+			
+				if (a < 16) {
+					model.setValueAt(Byte.toUnsignedInt(Registers[a]), a, 1);
+				} else {
+					model.setValueAt(Short.toUnsignedInt(I), a, 1);
+				}
 			}
 		}
-		
-		model=(DefaultTableModel) stack.getModel();
-		for(int b=0;b<model.getRowCount();b++) {
+
+		model = (DefaultTableModel) stack.getModel();
+		for (int b = 0; b < model.getRowCount(); b++) {
+
 			model.setValueAt(Integer.toHexString(Stack[b]), b, 0);
 		}
 		operation.setText(lastStackOp);
 		stackSize.setValue(pointer);
-		
+
 	}
 }

@@ -59,7 +59,6 @@ public class MainGUI extends JFrame {
 	}
 
 	public MainGUI() {
-		setResizable(false);
 		setTitle("JC8");
 		initComponents();
 		try {
@@ -219,10 +218,8 @@ public class MainGUI extends JFrame {
 		int value = 0;
 		for (int y = 0; y < 32; y++) {
 			for (int x = 0; x < 64; x++) {
-				value = 0x0;
-				if (screen[x + y * 64] != 0) {
-					value = 0xffffff;
-				}
+				value = screen[x + y * 64] == 1 ? 0xffffff : 0x0;	
+			
 
 				bimage.setRGB(x, y, value);
 			}

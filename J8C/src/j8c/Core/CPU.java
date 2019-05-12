@@ -336,7 +336,7 @@ public class CPU implements Runnable {
 			if (id == 0x1000) {
 				logToDebugger("goto " + (args));
 				PC = args;
-				
+
 			}
 			if (id == 0x2000) {
 				logToDebugger("call " + (args));
@@ -496,17 +496,16 @@ public class CPU implements Runnable {
 				int height = args & 0xf;
 				regV[0xf] = 0;
 				for (int Y = 0; Y < height; Y++) {
-					int pixel = toUnsignedInt(memory[I + Y]);
+					byte pixel = memory[I + Y];
 					for (int X = 0; X < 8; X++) {
-						int num = pixel & (0x80 >> X);
+						byte num = (byte) (pixel & (0x80 >> X));
 						if (num != 0) {
 							int index = (valX + X + ((valY + Y) * 64));
-							if (index >= 2048) {
 								while (index >= 2048) {
-									index = index - 2048;
+									index -= 2048;
 								}
 								// Wrap around the screen
-							}
+							
 							if (screen[index] == 1) {
 								regV[0xf] = 1;
 							}
