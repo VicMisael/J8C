@@ -21,12 +21,12 @@ public class Timers {
 
 	public static void setAfter(long after) {
 		afterMilis = after;
-		// calculate();
+		calculate();
 	}
 
 
 	public static void calculate() {
-		System.out.println(afterMilis - currentMilis);
+		System.err.println((afterMilis - currentMilis)/1000000d);
 
 	}
 

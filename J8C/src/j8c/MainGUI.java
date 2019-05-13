@@ -18,6 +18,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
 
 import j8c.Core.CPU;
@@ -58,14 +59,13 @@ public class MainGUI extends JFrame {
 		});
 	}
 
-	public MainGUI() {
+	public MainGUI() throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
+		setResizable(false);
+		
 		setTitle("JC8");
+		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		initComponents();
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (Exception e) {
-			System.out.println("Error setting native LAF: " + e);
-		}
+		
 
 	}
 

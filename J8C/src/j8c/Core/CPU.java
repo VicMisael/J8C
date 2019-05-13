@@ -26,6 +26,7 @@ public class CPU implements Runnable {
 	private Random r;
 	private int lastPressed = -1;
 	private boolean keyIsPressed = false;
+	private String asm = "";
 	// private boolean drawFlag = true;
 	private static Thread CPUThread;
 
@@ -181,6 +182,7 @@ public class CPU implements Runnable {
 		// Timers.setCurrent(System.nanoTime());
 		fetchOpcode();
 		decodeExecute();
+		// Timers.setAfter(System.nanoTime());
 		if (Debugger.isDebuggerStarted()) {
 			logToRegisterWatch();
 			int sleepTime = Debugger.getInstance().getSleepTimer();
@@ -200,13 +202,11 @@ public class CPU implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		// Timers.setAfter(System.nanoTime());
-		// Timers.calculate();
 
 	}
 
 	public void logToRegisterWatch() {
-		Debugger.getInstance().updateRegisters(regV, I, Stack.getData(), Stack.getLastOp(), Stack.getPointer(), PC);
+		Debugger.getInstance().updateRegisters(regV, I, Stack.getData(), Stack.getLastOp(), Stack.getPointer(), PC,asm);
 	}
 
 	private void loadMemory() {
@@ -267,7 +267,14 @@ public class CPU implements Runnable {
 		public static int pop() {
 			lastOp = "pop";
 			pointer--;
-			return stack[pointer];
+			if (pointer > -1) {
+				int value = stack[pointer];
+				stack[pointer] = 0;
+				return value;
+			} else {
+				System.out.println("Stack pointer is negative, W T F?");
+				return 0;
+			}
 
 		}
 
@@ -300,10 +307,10 @@ public class CPU implements Runnable {
 		int id = 0;
 		int args = 0;
 
-		public void logToDebugger(String asm) {
+		public void logToDebugger(String logasm) {
 
 			if (Debugger.isDebuggerStarted()) {
-				System.out.println(asm);
+				asm=logasm;
 			}
 		}
 
@@ -502,10 +509,20 @@ public class CPU implements Runnable {
 					for (int X = 0; X < 8; X++) {
 						byte num = (byte) (pixel & (0x80 >> X));
 						if (num != 0) {
-							int index = (valX + X + ((valY + Y) * 64));
-							while (index >= 2048) {
-								index -= 2048;
+
+							int screenRX = valX + X;
+							int screenRY = valY + Y;
+							while (screenRX >= 64) {
+								screenRX -= 64;
 							}
+							while (screenRY >= 32) {
+								screenRY -= 32;
+							}
+							int index = (screenRX + ((screenRY) * 64));
+//							int index = (valX + X + ((valY + Y) * 64));							
+//							while (index >= 2048) {
+//								index -= 2048;
+//							}
 							// Wrap around the screen
 
 							if (screen[index] == 1) {
