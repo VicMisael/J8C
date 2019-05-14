@@ -180,9 +180,10 @@ public class CPU implements Runnable {
 ////			}
 ////		}
 		// Timers.setCurrent(System.nanoTime());
+		// Timers.setAfter(System.nanoTime());
 		fetchOpcode();
 		decodeExecute();
-		// Timers.setAfter(System.nanoTime());
+
 		if (Debugger.isDebuggerStarted()) {
 			logToRegisterWatch();
 			int sleepTime = Debugger.getInstance().getSleepTimer();
@@ -206,7 +207,8 @@ public class CPU implements Runnable {
 	}
 
 	public void logToRegisterWatch() {
-		Debugger.getInstance().updateRegisters(regV, I, Stack.getData(), Stack.getLastOp(), Stack.getPointer(), PC,asm);
+		Debugger.getInstance().updateRegisters(regV, I, Stack.getData(), Stack.getLastOp(), Stack.getPointer(), PC,
+				asm);
 	}
 
 	private void loadMemory() {
@@ -310,7 +312,7 @@ public class CPU implements Runnable {
 		public void logToDebugger(String logasm) {
 
 			if (Debugger.isDebuggerStarted()) {
-				asm=logasm;
+				asm = logasm;
 			}
 		}
 
@@ -500,6 +502,7 @@ public class CPU implements Runnable {
 						"drw V[" + ((args & 0xF00) >> 8) + "],V[" + (byte) ((args & 0x0f0) >> 4) + "]," + (args & 0xf));
 				// Draw
 				// Tela 64*32
+				// Timers.setCurrent(System.currentTimeMillis());
 				short valX = (short) toUnsignedInt(regV[(args & 0xf00) >> 8]);
 				short valY = (short) toUnsignedInt(regV[(args & 0xf0) >> 4]);
 				int height = args & 0xf;
@@ -512,12 +515,20 @@ public class CPU implements Runnable {
 
 							int screenRX = valX + X;
 							int screenRY = valY + Y;
-							while (screenRX >= 64) {
-								screenRX -= 64;
+							// System.out.println(screenRX);
+							// System.out.println(screenRY);
+							int a = 0;
+							if (screenRX >= 64 || screenRY >= 32) {
+								for (a = screenRX / 64; a > 0; a--) {
+									screenRX -= 64;
+
+								}
+								for (a = screenRY / 32; a > 0; a--) {
+									screenRY -= 32;
+								}
+								System.out.println("Overflow");
 							}
-							while (screenRY >= 32) {
-								screenRY -= 32;
-							}
+
 							int index = (screenRX + ((screenRY) * 64));
 //							int index = (valX + X + ((valY + Y) * 64));							
 //							while (index >= 2048) {
@@ -535,6 +546,7 @@ public class CPU implements Runnable {
 				}
 
 				Graphics.Draw(screen, "");
+				// Timers.setAfter(System.currentTimeMillis());
 				PC += 2;
 			}
 			if (id == 0xe000) {
