@@ -528,14 +528,9 @@ public class CPU implements Runnable {
 								}
 								System.out.println("Overflow");
 							}
-
+//					
 							int index = (screenRX + ((screenRY) * 64));
-//							int index = (valX + X + ((valY + Y) * 64));							
-//							while (index >= 2048) {
-//								index -= 2048;
-//							}
-							// Wrap around the screen
-
+											
 							if (screen[index] == 1) {
 								regV[0xf] = 1;
 							}
