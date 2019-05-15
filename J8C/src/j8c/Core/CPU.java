@@ -23,7 +23,7 @@ public class CPU implements Runnable {
 	private byte screen[] = new byte[64 * 32];
 	protected int opcode;
 	private boolean[] Keys;
-
+	private int mode=0;
 	private int lastPressed = -1;
 	private boolean keyIsPressed = false;
 	private String asm = "";
