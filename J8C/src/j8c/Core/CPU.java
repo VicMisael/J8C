@@ -23,7 +23,7 @@ public class CPU implements Runnable {
 	private byte screen[] = new byte[64 * 32];
 	protected int opcode;
 	private boolean[] Keys;
-	private Random r;
+
 	private int lastPressed = -1;
 	private boolean keyIsPressed = false;
 	private String asm = "";
@@ -39,7 +39,7 @@ public class CPU implements Runnable {
 	// Hexadecimal F == Binary 1111
 	// FF= 1 Byte
 	private CPU() {
-		r = new Random();
+
 	}
 
 	public static void setNull() {
@@ -117,6 +117,7 @@ public class CPU implements Runnable {
 		PC = 0x200;
 		Stack.reset();
 		loadMemory();
+		Randomizer.start();
 		CPUThread = new Thread(this);
 		CPUThread.setName("Interpreter");
 		CPUThread.start();
@@ -252,6 +253,33 @@ public class CPU implements Runnable {
 		new Instruction(instructionId, instructionArgs).execute();
 		// System.out.println(Integer.toHexString(opcode));
 
+	}
+
+	private static class Randomizer {
+		// Made to let the random numbers be easy to predict
+		private static Random r = new Random();
+		private static int pointer = 31;
+		private static int[] values = new int[128];
+
+		private Randomizer() {
+
+		}
+
+		public static void start() {
+			for (int c = 0; c < values.length; c++) {
+				values[c] = r.nextInt(255);
+			}
+			pointer = 0;
+		}
+
+		public static int getValue() {
+			if (pointer >= values.length) {
+				start();
+			}
+			int ret = values[pointer];
+			pointer++;
+			return ret;
+		}
 	}
 
 	private static class Stack {
@@ -492,7 +520,7 @@ public class CPU implements Runnable {
 			if (id == 0xc000) {
 				logToDebugger("rndand" + ((args & 0xf00) >> 8) + "," + (args & 0xff) + "");
 				int Xreg = (args & 0xf00) >> 8;
-				int nextInt = r.nextInt(255);
+				int nextInt = Randomizer.getValue();
 				//
 				regV[Xreg] = (byte) ((byte) nextInt & toUnsignedInt((byte) (args & 0xff)));
 				PC += 2;
@@ -530,7 +558,7 @@ public class CPU implements Runnable {
 							}
 //					
 							int index = (screenRX + ((screenRY) * 64));
-											
+
 							if (screen[index] == 1) {
 								regV[0xf] = 1;
 							}
