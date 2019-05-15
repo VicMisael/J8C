@@ -59,13 +59,13 @@ public class MainGUI extends JFrame {
 		});
 	}
 
-	public MainGUI() throws ClassNotFoundException, InstantiationException, IllegalAccessException,
-			UnsupportedLookAndFeelException {
+	public MainGUI() throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
 		setResizable(false);
-
+		
 		setTitle("JC8");
 		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		initComponents();
+		
 
 	}
 
@@ -112,7 +112,7 @@ public class MainGUI extends JFrame {
 		mntmDebugger.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Debugger.getInstance().setVisible(true);
-
+				
 			}
 		});
 
@@ -208,31 +208,20 @@ public class MainGUI extends JFrame {
 
 	}
 
-	public static void drawToCanvas(byte[] screen, int mode) {
+	public static void drawToCanvas(byte[] screen) {
 		// y=32Pixels,X=64 pixels, CanvasX=384 canvasY=192
 		if (canvas.getBufferStrategy() == null) {
 			canvas.createBufferStrategy(2);
 		}
-		BufferedImage bimage=null;
-		if (mode == 0) {
-			bimage = new BufferedImage(64, 32, BufferedImage.TYPE_INT_RGB);
-			int value = 0;
-			for (int y = 0; y < 32; y++) {
-				for (int x = 0; x < 64; x++) {
-					value = screen[x + y * 64] == 1 ? 0xffffff : 0x0;
 
-					bimage.setRGB(x, y, value);
-				}
-			}
-		}else {
-			bimage = new BufferedImage(64, 64, BufferedImage.TYPE_INT_RGB);
-			int value = 0;
-			for (int y = 0; y < 64; y++) {
-				for (int x = 0; x < 64; x++) {
-					value = screen[x + y * 64] == 1 ? 0xffffff : 0x0;
+		BufferedImage bimage = new BufferedImage(64, 32, BufferedImage.TYPE_INT_RGB);
+		int value = 0;
+		for (int y = 0; y < 32; y++) {
+			for (int x = 0; x < 64; x++) {
+				value = screen[x + y * 64] == 1 ? 0xffffff : 0x0;	
+			
 
-					bimage.setRGB(x, y, value);
-				}
+				bimage.setRGB(x, y, value);
 			}
 		}
 
