@@ -23,7 +23,7 @@ public class CPU implements Runnable {
 	private byte screen[] = new byte[64 * 32];
 	protected int opcode;
 	private boolean[] Keys;
-	private int mode=0;
+
 	private int lastPressed = -1;
 	private boolean keyIsPressed = false;
 	private String asm = "";
@@ -439,15 +439,15 @@ public class CPU implements Runnable {
 				}
 				if (mathInstId == 0x0001) {
 					logToDebugger("or V[" + Xreg + "],V[" + Yreg + "]");
-					regV[Xreg] = (byte) (regV[Xreg] | regV[Yreg]);
+					regV[Xreg] |= regV[Yreg];
 				}
 				if (mathInstId == 0x0002) {
 					logToDebugger("and V[" + Xreg + "],V[" + Yreg + "]");
-					regV[Xreg] = (byte) (regV[Xreg] & regV[Yreg]);
+					regV[Xreg] &= regV[Yreg];
 				}
 				if (mathInstId == 0x0003) {
 					logToDebugger("xor V[" + Xreg + "],V[" + Yreg + "]");
-					regV[Xreg] = (byte) (regV[Xreg] ^ regV[Yreg]);
+					regV[Xreg] ^= regV[Yreg];
 				}
 				if (mathInstId == 0x0004) {
 					logToDebugger("addcarry V[" + Xreg + "],V[" + Yreg + "]");
@@ -457,23 +457,19 @@ public class CPU implements Runnable {
 						regV[Xreg] = (byte) 0xFF;
 
 					} else {
-						regV[Xreg] = (byte) (regV[Xreg] + regV[Yreg]);
+						regV[Xreg] += regV[Yreg];
 					}
 				}
 				if (mathInstId == 0x0005) {
 					logToDebugger("subcarry V[" + Xreg + "],V[" + Yreg + "]");
 					if (toUnsignedInt(regV[Xreg]) > toUnsignedInt(regV[Yreg])) {
 
-						regV[0xf] = 1;
-						regV[Xreg] = (byte) (toUnsignedInt(regV[Yreg]) - toUnsignedInt(regV[Xreg]));
-
-					} else {
-						regV[Xreg] = (byte) (toUnsignedInt(regV[Xreg]) - toUnsignedInt(regV[Yreg]));
-					}
+						regV[0xf] = 1;}
+					regV[Xreg] -= regV[Yreg];
 				}
 				if (mathInstId == 0x0006) {
 					logToDebugger("rsftob V[" + Xreg + "]");
-					regV[0xf] = (byte) (regV[Xreg] & 0x000f);
+					regV[0xf] = (byte) (regV[Xreg] & 0x1);
 					regV[Xreg] = (byte) ((regV[Xreg] >> 1) & 0xFF);
 				}
 				if (mathInstId == 0x0007) {
@@ -481,12 +477,12 @@ public class CPU implements Runnable {
 					if ((regV[Xreg] < regV[Yreg])) {
 
 						regV[0xf] = 1;
-						regV[Xreg] = (byte) toUnsignedInt(
-								(byte) (toUnsignedInt(regV[Yreg]) - toUnsignedInt(regV[Xreg])));
-
+						
 					} else {
-						regV[Xreg] = (byte) (toUnsignedInt(regV[Xreg]) - toUnsignedInt(regV[Yreg]));
+						regV[0xf] = 0;
+						
 					}
+					regV[Xreg] = (byte) (regV[Yreg] - regV[Xreg]);
 
 				}
 				if (mathInstId == 0x000e) {
@@ -555,8 +551,7 @@ public class CPU implements Runnable {
 									screenRY -= 32;
 								}
 								System.out.println("Overflow");
-							}
-//					
+							}	
 							int index = (screenRX + ((screenRY) * 64));
 
 							if (screen[index] == 1) {
