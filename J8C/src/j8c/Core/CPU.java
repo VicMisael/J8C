@@ -454,17 +454,18 @@ public class CPU implements Runnable {
 					if ((regV[Xreg] + regV[Yreg]) > 255) {
 
 						regV[0xf] = 1;
-						regV[Xreg] = (byte) 0xFF;
+						// regV[Xreg] = (byte) 0xFF;
 
-					} else {
-						regV[Xreg] += regV[Yreg];
 					}
+					regV[Xreg] += regV[Yreg];
+
 				}
 				if (mathInstId == 0x0005) {
 					logToDebugger("subcarry V[" + Xreg + "],V[" + Yreg + "]");
 					if (toUnsignedInt(regV[Xreg]) > toUnsignedInt(regV[Yreg])) {
 
-						regV[0xf] = 1;}
+						regV[0xf] = 1;
+					}
 					regV[Xreg] -= regV[Yreg];
 				}
 				if (mathInstId == 0x0006) {
@@ -477,10 +478,10 @@ public class CPU implements Runnable {
 					if ((regV[Xreg] < regV[Yreg])) {
 
 						regV[0xf] = 1;
-						
+
 					} else {
 						regV[0xf] = 0;
-						
+
 					}
 					regV[Xreg] = (byte) (regV[Yreg] - regV[Xreg]);
 
@@ -542,7 +543,7 @@ public class CPU implements Runnable {
 							// System.out.println(screenRX);
 							// System.out.println(screenRY);
 							int a = 0;
-							if (screenRX >= 64 || screenRY >= 32) {
+							if ((screenRX >= 64 || screenRY >= 32)) {
 								for (a = screenRX / 64; a > 0; a--) {
 									screenRX -= 64;
 
@@ -550,8 +551,8 @@ public class CPU implements Runnable {
 								for (a = screenRY / 32; a > 0; a--) {
 									screenRY -= 32;
 								}
-								System.out.println("Overflow");
-							}	
+								System.out.println("Wrapping screen");
+							}
 							int index = (screenRX + ((screenRY) * 64));
 
 							if (screen[index] == 1) {
