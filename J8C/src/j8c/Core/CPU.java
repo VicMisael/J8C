@@ -214,9 +214,10 @@ public class CPU implements Runnable {
 
 	private void loadMemory() {
 		byte[] rom = RomLoader.getInstance().getRom();
-		for (int i = 0; i < rom.length; ++i) {
-			memory[512 + i] = rom[i];
-		}
+//		for (int i = 0; i < rom.length; ++i) {
+//			memory[512 + i] = rom[i];
+//		}
+		System.arraycopy(rom, 0, memory, 512, rom.length);
 		// teste de leitura da memoria
 //		int i = 0;
 //		for (byte a : memory) {
@@ -646,17 +647,19 @@ public class CPU implements Runnable {
 					int copyIndex = (args & 0xf00) >> 8;
 					logToDebugger("rgdump [" + I + "],V[" + copyIndex + "]");
 
-					for (int i = 0; i <= copyIndex; i++) {
-						memory[I + i] = regV[i];
-					}
+//					for (int i = 0; i <= copyIndex; i++) {
+//						memory[I + i] = regV[i];
+//					}
+					System.arraycopy(regV, 0, memory, I, copyIndex+1);
 					PC += 2;
 				}
 				if (0x65 == (args & 0xff)) {
 					int copyIndex = (args & 0xf00) >> 8;
 					logToDebugger("memdump V[" + copyIndex + "]," + copyIndex + "");
-					for (int i = 0; i <= copyIndex; i++) {
-						regV[i] = memory[I + i];
-					}
+//					for (int i = 0; i <= copyIndex; i++) {
+//						regV[i] = memory[I + i];
+//					}
+					System.arraycopy(memory, I + 0, regV, 0, copyIndex + 1);
 					PC += 2;
 
 				}
