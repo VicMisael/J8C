@@ -162,7 +162,6 @@ public class CPU implements Runnable {
 
 	public void unpressedKeyInterrupt() {
 
-		controllerQueue = true;
 		Keys = Keyboard.getKeyArray();
 		keyIsPressed = false;
 		controllerQueue = true;
