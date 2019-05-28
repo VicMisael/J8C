@@ -41,6 +41,7 @@ public class MainGUI extends JFrame {
 	private static final Canvas canvas = new Canvas();
 	private final JMenuItem mntmPause = new JMenuItem("Pause");
 	private final JMenuItem mntmDebugger = new JMenuItem("Debugger");
+	private final JMenuItem mntmOptions = new JMenuItem("Options");
 
 	/**
 	 * Launch the application.
@@ -117,6 +118,13 @@ public class MainGUI extends JFrame {
 		});
 
 		mnNewMenu.add(mntmDebugger);
+		mntmOptions.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				OptionsMenu.getOptionsMenu().setVisible(true);
+			}
+		});
+		
+		mnNewMenu.add(mntmOptions);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));

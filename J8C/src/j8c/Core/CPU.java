@@ -535,7 +535,7 @@ public class CPU implements Runnable {
 				for (int Y = 0; Y < height; Y++) {
 					byte pixel = memory[I + Y];
 					for (int X = 0; X < 8; X++) {
-						byte num = (byte) (pixel & (0x80 >> X));
+						byte num = (byte) (pixel & (0x80 >>> X));
 						if (num != 0) {
 
 							int screenRX = valX + X;
@@ -544,14 +544,17 @@ public class CPU implements Runnable {
 							// System.out.println(screenRY);
 							int a = 0;
 							if ((screenRX >= 64 || screenRY >= 32)) {
-								for (a = screenRX / 64; a > 0; a--) {
-									screenRX -= 64;
+								if (Options.getInstance().isXWrappingEnabled()) {
+									for (a = screenRX / 64; a > 0; a--) {
+										screenRX -= 64;
 
+									}
+								} 
+								if (Options.getInstance().isXWrappingEnabled()) {
+									for (a = screenRY / 32; a > 0; a--) {
+										screenRY -= 32;
+									}
 								}
-								for (a = screenRY / 32; a > 0; a--) {
-									screenRY -= 32;
-								}
-								System.out.println("Wrapping screen");
 							}
 							int index = (screenRX + ((screenRY) * 64));
 
@@ -649,7 +652,7 @@ public class CPU implements Runnable {
 //					for (int i = 0; i <= copyIndex; i++) {
 //						memory[I + i] = regV[i];
 //					}
-					System.arraycopy(regV, 0, memory, I, copyIndex+1);
+					System.arraycopy(regV, 0, memory, I, copyIndex + 1);
 					PC += 2;
 				}
 				if (0x65 == (args & 0xff)) {
