@@ -24,6 +24,8 @@ import javax.swing.border.EmptyBorder;
 import j8c.Core.CPU;
 import j8c.Core.Keyboard;
 import j8c.Core.RomLoader;
+import javax.swing.event.MenuListener;
+import javax.swing.event.MenuEvent;
 
 public class MainGUI extends JFrame {
 
@@ -42,6 +44,7 @@ public class MainGUI extends JFrame {
 	private final JMenuItem mntmPause = new JMenuItem("Pause");
 	private final JMenuItem mntmDebugger = new JMenuItem("Debugger");
 	private final JMenuItem mntmOptions = new JMenuItem("Options");
+	private final JMenu mnAbout = new JMenu("About");
 
 	/**
 	 * Launch the application.
@@ -125,6 +128,40 @@ public class MainGUI extends JFrame {
 		});
 		
 		mnNewMenu.add(mntmOptions);
+		mnAbout.addMenuListener(new MenuListener() {
+			public void menuCanceled(MenuEvent e) {
+			}
+			public void menuDeselected(MenuEvent e) {
+			}
+			public void menuSelected(MenuEvent e) {
+				EventQueue.invokeLater(new Runnable() {
+					public void run() {
+						try {
+							AboutPage frame = new AboutPage();
+							frame.setVisible(true);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				});
+			}
+		});
+		mnAbout.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				EventQueue.invokeLater(new Runnable() {
+					public void run() {
+						try {
+							AboutPage frame = new AboutPage();
+							frame.setVisible(true);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				});
+			}
+		});
+		
+		menuBar.add(mnAbout);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
