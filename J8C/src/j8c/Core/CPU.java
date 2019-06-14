@@ -353,86 +353,103 @@ public class CPU implements Runnable {
 			this.args = args;
 
 		}
-
+		public void processMath() {
+			System.out.println("TBI");
+		}
 		public void execute() {
+			// TODO change the if and else to a switch statement
 			// Do Something
 			// System.out.println("The instruction is:" + Integer.toHexString((id & args)));
-			if (id == 0x0000) {
-				if (args == 0x0E0) {
+			int Xreg = -1;
+			int Yreg = -1;
+			byte value = 0;
+			switch (id) {
+
+			case 0x0:
+				switch (args) {
+				case (0x0E0):
 					logToDebugger("clsc");
 					for (int i = 0; i < screen.length; ++i) {
 						screen[i] = 0;
 					}
 					Graphics.Draw(screen, "");
 					PC += 2;
-				}
-				if (args == 0x0ee) {
+					break;
+				case (0x0ee):
 					logToDebugger("ret");
 					PC = Stack.pop();
 					PC += 2;
+					break;
 				}
-			}
-			if (id == 0x1000) {
+				break;
+			case (0x1000):
 				logToDebugger("goto " + (args));
 				PC = args;
+				break;
 
-			}
-			if (id == 0x2000) {
+			case (0x2000):
 				logToDebugger("call " + (args));
 				Stack.push(PC);
 				PC = args;
-			}
-			if (id == 0x3000) {
+				break;
+
+			case (0x3000):
 				logToDebugger("skpfeq V[" + ((args & 0xF00) >> 8) + "]," + (args & 0x0FF));
-				int Xreg = (args & 0xF00) >> 8;
-				int value = (args & 0x0FF);
+				Xreg = (args & 0xF00) >> 8;
+				value = (byte) (args & 0x0FF);
 				if (regV[Xreg] == value) {
 					PC += 4;
 				} else {
 					PC += 2;
 				}
-			}
-			if (id == 0x4000) {
+				break;
+
+			case (0x4000):
 				logToDebugger("skpfneq V[" + ((args & 0xF00) >> 8) + "]," + (args & 0x0FF));
-				int Xreg = (args & 0xF00) >> 8;
-				int value = (args & 0x0FF);
+				Xreg = (args & 0xF00) >> 8;
+				value = 0;
+				value += (args & 0x0FF);
 				if (regV[Xreg] != value) {
 					PC += 4;
 				} else {
 					PC += 2;
 				}
+				break;
 
-			}
-			if (id == 0x5000) {
+			case (0x5000):
 				logToDebugger("skpfeq V[" + ((args & 0xF00) >> 8) + "],V[" + ((args & 0x0f0) >> 4) + "]");
 
-				int Xreg = (args & 0xf00) >> 8;
-				int Yreg = (args & 0x0f0) >> 4;
+				Xreg = (args & 0xf00) >> 8;
+				Yreg = (args & 0x0f0) >> 4;
 				if (regV[Xreg] == regV[Yreg]) {
 					PC += 4;
 				} else {
 					PC += 2;
 				}
-			}
-			if (id == 0x6000) {
+				break;
+
+			case (0x6000):
 				logToDebugger("ld V[" + ((args & 0xF00) >> 8) + "]," + toUnsignedInt((byte) (args & 0x0ff)));
-				int Xreg = (args & 0x0f00) >> 8;
-				byte value = (byte) toUnsignedInt((byte) (args & 0xff));
+				Xreg = (args & 0x0f00) >> 8;
+				value = (byte) toUnsignedInt((byte) (args & 0xff));
 				regV[Xreg] = value;
 				PC += 2;
-			}
-			if (id == 0x7000) {
+				break;
+
+			case (0x7000):
 				logToDebugger("add V[" + ((args & 0xF00) >> 8) + "]," + toUnsignedInt((byte) (args & 0x0ff)));
-				int Xreg = (args & 0x0f00) >> 8;
-				byte value = (byte) (args & 0x0ff);
-				regV[Xreg] = (byte) (toUnsignedInt(regV[Xreg]) + toUnsignedInt((byte) value));
+				Xreg = (args & 0x0f00) >> 8;
+				value = 0;
+				value += (args & 0x0ff);
+				regV[Xreg] += value;
 				PC += 2;
+				break;
 			}
 			if (id == 0x8000) {
 				// Math instructions
 				int mathInstId = (args & 0x000f);
-				byte Xreg = (byte) ((args & 0x0f00) >> 8);
-				byte Yreg = (byte) ((args & 0x00f0) >> 4);
+				Xreg = (byte) ((args & 0x0f00) >> 8);
+				Yreg = (byte) ((args & 0x00f0) >> 4);
 				if (mathInstId == 0x0000) {
 					logToDebugger("ld V[" + Xreg + "]," + "V[" + Yreg + "]");
 					regV[Xreg] = regV[Yreg];
@@ -495,8 +512,8 @@ public class CPU implements Runnable {
 			}
 			if (id == 0x9000) {
 
-				int Xreg = ((args & 0x0f00) >> 8);
-				int Yreg = ((args & 0x00f0) >> 4);
+				Xreg = ((args & 0x0f00) >> 8);
+				Yreg = ((args & 0x00f0) >> 4);
 				logToDebugger("jmpifneq V[" + Xreg + "],V[" + Yreg + "]");
 				if (regV[Xreg] != regV[Yreg]) {
 					PC += 4;
@@ -516,7 +533,7 @@ public class CPU implements Runnable {
 			}
 			if (id == 0xc000) {
 				logToDebugger("rndand" + ((args & 0xf00) >> 8) + "," + (args & 0xff) + "");
-				int Xreg = (args & 0xf00) >> 8;
+				Xreg = (args & 0xf00) >> 8;
 				int nextInt = Randomizer.getValue();
 				//
 				regV[Xreg] = (byte) ((byte) nextInt & toUnsignedInt((byte) (args & 0xff)));
@@ -549,7 +566,7 @@ public class CPU implements Runnable {
 										screenRX -= 64;
 
 									}
-								} 
+								}
 								if (Options.getInstance().isXWrappingEnabled()) {
 									for (a = screenRY / 32; a > 0; a--) {
 										screenRY -= 32;
@@ -573,7 +590,7 @@ public class CPU implements Runnable {
 			}
 			if (id == 0xe000) {
 				if (0x9e == (args & 0xff)) {
-					int Xreg = (args & 0xf00) >> 8;
+					Xreg = (args & 0xf00) >> 8;
 					if (Keys[regV[Xreg]]) {
 						PC += 4;
 					} else {
@@ -582,7 +599,7 @@ public class CPU implements Runnable {
 					logToDebugger("skp V[" + Xreg + "]");
 				}
 				if (0xA1 == (args & 0xff)) {
-					int Xreg = (args & 0xf00) >> 8;
+					Xreg = (args & 0xf00) >> 8;
 					logToDebugger("sknp V[" + Xreg + "]");
 					if (!Keys[regV[Xreg]]) {
 						PC += 4;
@@ -595,14 +612,14 @@ public class CPU implements Runnable {
 			if (id == 0xf000) {
 				if (0x07 == (args & 0xff)) {
 
-					int Xreg = (args & 0xf00) >> 8;
+					Xreg = (args & 0xf00) >> 8;
 					logToDebugger("unlddt V[" + Xreg + "]");
 					regV[Xreg] = (byte) Timers.getDelayTimer();
 					PC += 2;
 				}
 				if (0x0a == (args & 0xff)) {
 					// To be implemented
-					int Xreg = (args & 0xf00) >> 8;
+					Xreg = (args & 0xf00) >> 8;
 					logToDebugger("waitkpld V[ " + Xreg + "]");
 					if (keyIsPressed || Keyboard.getLastPressed() != -1) {
 						regV[Xreg] = (byte) lastPressed;
@@ -610,25 +627,25 @@ public class CPU implements Runnable {
 					}
 				}
 				if (0x15 == (args & 0xff)) {
-					int Xreg = (args & 0xf00) >> 8;
+					Xreg = (args & 0xf00) >> 8;
 					logToDebugger("lddtfreg V[" + Xreg + "]");
 					Timers.setDelayTimer(regV[Xreg]);
 					PC += 2;
 				}
 				if (0x18 == (args & 0xff)) {
-					int Xreg = (args & 0xf00) >> 8;
+					Xreg = (args & 0xf00) >> 8;
 					logToDebugger("ldstfreg V[" + Xreg + "]");
 					Timers.setSoundTimer(regV[Xreg]);
 					PC += 2;
 				}
 				if (0x1E == (args & 0xff)) {
-					int Xreg = (args & 0xf00) >> 8;
+					Xreg = (args & 0xf00) >> 8;
 					logToDebugger("addi V[" + Xreg + "]");
 					I += toUnsignedInt(regV[Xreg]);
 					PC += 2;
 				}
 				if (0x29 == (args & 0xff)) {
-					int Xreg = (args & 0xf00) >> 8;
+					Xreg = (args & 0xf00) >> 8;
 //					I = charAddress[regV[Xreg]];
 					logToDebugger("ldspr V[" + Xreg + "]");
 					I = (short) toUnsignedInt((byte) (regV[Xreg] * 0x5));
@@ -636,12 +653,12 @@ public class CPU implements Runnable {
 				}
 				if (0x33 == (args & 0xff)) {
 
-					int Xreg = (args & 0xf00) >> 8;
-					short value = (short) toUnsignedInt(regV[Xreg]);
+					Xreg = (args & 0xf00) >> 8;
+					short valueTobcd = (short) toUnsignedInt(regV[Xreg]);
 					logToDebugger("BCD V[" + Xreg + "]");
-					memory[I] = (byte) (value / 100);
-					memory[I + 1] = (byte) ((value / 10) % 10);
-					memory[I + 2] = (byte) ((value % 100) % 10);
+					memory[I] = (byte) (valueTobcd / 100);
+					memory[I + 1] = (byte) ((valueTobcd / 10) % 10);
+					memory[I + 2] = (byte) ((valueTobcd % 100) % 10);
 					PC += 2;
 
 				}
