@@ -353,9 +353,75 @@ public class CPU implements Runnable {
 			this.args = args;
 
 		}
+
 		public void processMath() {
-			System.out.println("TBI");
+			int mathInstId = (args & 0x000f);
+			byte Xreg = (byte) ((args & 0x0f00) >> 8);
+			byte Yreg = (byte) ((args & 0x00f0) >> 4);
+			switch (mathInstId) {
+			case (0x0):
+				logToDebugger("ld V[" + Xreg + "]," + "V[" + Yreg + "]");
+				regV[Xreg] = regV[Yreg];
+				break;
+			case (0x1):
+				logToDebugger("or V[" + Xreg + "],V[" + Yreg + "]");
+				regV[Xreg] |= regV[Yreg];
+				break;
+			case (0x2):
+				logToDebugger("and V[" + Xreg + "],V[" + Yreg + "]");
+				regV[Xreg] &= regV[Yreg];
+				break;
+			case (0x3):
+				logToDebugger("xor V[" + Xreg + "],V[" + Yreg + "]");
+				regV[Xreg] ^= regV[Yreg];
+				break;
+			case (0x4):
+				logToDebugger("addcarry V[" + Xreg + "],V[" + Yreg + "]");
+				if ((regV[Xreg] + regV[Yreg]) > 255) {
+
+					regV[0xf] = 1;
+					// regV[Xreg] = (byte) 0xFF;
+
+				}
+				regV[Xreg] += regV[Yreg];
+				break;
+			case (0x5):
+				logToDebugger("subcarry V[" + Xreg + "],V[" + Yreg + "]");
+				if (toUnsignedInt(regV[Xreg]) > toUnsignedInt(regV[Yreg])) {
+
+					regV[0xf] = 1;
+				}
+				regV[Xreg] -= regV[Yreg];
+				break;
+			case (0x6):
+				logToDebugger("rsftob V[" + Xreg + "]");
+				regV[0xf] = (byte) (regV[Xreg] & 0x1);
+				regV[Xreg] >>>= 1;
+				break;
+			case (0x7):
+				logToDebugger("subcarry V[" + Xreg + "],V[" + Yreg + "]");
+				if ((regV[Xreg] < regV[Yreg])) {
+
+					regV[0xf] = 1;
+
+				} else {
+					regV[0xf] = 0;
+
+				}
+				regV[Xreg] = (byte) (regV[Yreg] - regV[Xreg]);
+				break;
+			case (0xe):
+				logToDebugger("lsftob V[" + Xreg + "]");
+				regV[0xf] = (byte) (regV[Xreg] & 0x80);
+				regV[Xreg] = (byte) ((regV[Xreg] << 1) & 0xFF);
+				break;
+			default:
+				System.out.println("Unknown math instruction" + Integer.toHexString(mathInstId));
+
+			}
+			PC += 2;
 		}
+
 		public void execute() {
 			// TODO change the if and else to a switch statement
 			// Do Something
@@ -444,71 +510,11 @@ public class CPU implements Runnable {
 				regV[Xreg] += value;
 				PC += 2;
 				break;
-			}
-			if (id == 0x8000) {
+			
+			case (0x8000):
+				processMath();
+			break;	
 				// Math instructions
-				int mathInstId = (args & 0x000f);
-				Xreg = (byte) ((args & 0x0f00) >> 8);
-				Yreg = (byte) ((args & 0x00f0) >> 4);
-				if (mathInstId == 0x0000) {
-					logToDebugger("ld V[" + Xreg + "]," + "V[" + Yreg + "]");
-					regV[Xreg] = regV[Yreg];
-				}
-				if (mathInstId == 0x0001) {
-					logToDebugger("or V[" + Xreg + "],V[" + Yreg + "]");
-					regV[Xreg] |= regV[Yreg];
-				}
-				if (mathInstId == 0x0002) {
-					logToDebugger("and V[" + Xreg + "],V[" + Yreg + "]");
-					regV[Xreg] &= regV[Yreg];
-				}
-				if (mathInstId == 0x0003) {
-					logToDebugger("xor V[" + Xreg + "],V[" + Yreg + "]");
-					regV[Xreg] ^= regV[Yreg];
-				}
-				if (mathInstId == 0x0004) {
-					logToDebugger("addcarry V[" + Xreg + "],V[" + Yreg + "]");
-					if ((regV[Xreg] + regV[Yreg]) > 255) {
-
-						regV[0xf] = 1;
-						// regV[Xreg] = (byte) 0xFF;
-
-					}
-					regV[Xreg] += regV[Yreg];
-
-				}
-				if (mathInstId == 0x0005) {
-					logToDebugger("subcarry V[" + Xreg + "],V[" + Yreg + "]");
-					if (toUnsignedInt(regV[Xreg]) > toUnsignedInt(regV[Yreg])) {
-
-						regV[0xf] = 1;
-					}
-					regV[Xreg] -= regV[Yreg];
-				}
-				if (mathInstId == 0x0006) {
-					logToDebugger("rsftob V[" + Xreg + "]");
-					regV[0xf] = (byte) (regV[Xreg] & 0x1);
-					regV[Xreg] = (byte) ((regV[Xreg] >> 1) & 0xFF);
-				}
-				if (mathInstId == 0x0007) {
-					logToDebugger("subcarry V[" + Xreg + "],V[" + Yreg + "]");
-					if ((regV[Xreg] < regV[Yreg])) {
-
-						regV[0xf] = 1;
-
-					} else {
-						regV[0xf] = 0;
-
-					}
-					regV[Xreg] = (byte) (regV[Yreg] - regV[Xreg]);
-
-				}
-				if (mathInstId == 0x000e) {
-					logToDebugger("lsftob V[" + Xreg + "]");
-					regV[0xf] = (byte) (regV[Xreg] & 0x80);
-					regV[Xreg] = (byte) ((regV[Xreg] << 1) & 0xFF);
-				}
-				PC += 2;
 			}
 			if (id == 0x9000) {
 
