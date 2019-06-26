@@ -61,11 +61,11 @@ public class CPU implements Runnable {
 
 		while (!breakTheEmu) {
 			if (!pause) {
-				cycle();
 				Keys = Keyboard.getKeyArray();
 				lastPressed = Keyboard.getLastPressed();
 				controllerQueue = false;
-
+				cycle();
+				
 			}
 		}
 
@@ -117,7 +117,6 @@ public class CPU implements Runnable {
 		PC = 0x200;
 		Stack.reset();
 		loadMemory();
-		Randomizer.start();
 		CPUThread = new Thread(this);
 		CPUThread.setName("Interpreter");
 		CPUThread.start();
@@ -255,33 +254,6 @@ public class CPU implements Runnable {
 
 	}
 
-	private static class Randomizer {
-		// Made to let the random numbers be easy to predict
-		private static Random r = new Random();
-		private static int pointer = 31;
-		private static int[] values = new int[128];
-
-		private Randomizer() {
-
-		}
-
-		public static void start() {
-			for (int c = 0; c < values.length; c++) {
-				values[c] = r.nextInt(255);
-			}
-			pointer = 0;
-		}
-
-		public static int getValue() {
-			if (pointer >= values.length) {
-				start();
-			}
-			int ret = values[pointer];
-			pointer++;
-			return ret;
-		}
-	}
-
 	private static class Stack {
 
 		private static int stack[] = new int[16];
@@ -417,6 +389,7 @@ public class CPU implements Runnable {
 				break;
 			default:
 				System.out.println("Unknown math instruction" + Integer.toHexString(mathInstId));
+				break;
 
 			}
 			PC += 2;
@@ -473,8 +446,8 @@ public class CPU implements Runnable {
 			case (0x4000):
 				logToDebugger("skpfneq V[" + ((args & 0xF00) >> 8) + "]," + (args & 0x0FF));
 				Xreg = (args & 0xF00) >> 8;
-				value = 0;
-				value += (args & 0x0FF);
+
+				value = (byte) (args & 0x0FF);
 				if (regV[Xreg] != value) {
 					PC += 4;
 				} else {
@@ -510,13 +483,13 @@ public class CPU implements Runnable {
 				regV[Xreg] += value;
 				PC += 2;
 				break;
-			
+
 			case (0x8000):
 				processMath();
-			break;	
-				// Math instructions
-			}
-			if (id == 0x9000) {
+				break;
+			// Math instructions
+
+			case (0x9000):
 
 				Xreg = ((args & 0x0f00) >> 8);
 				Yreg = ((args & 0x00f0) >> 4);
@@ -526,24 +499,26 @@ public class CPU implements Runnable {
 				} else {
 					PC += 2;
 				}
-			}
-			if (id == 0xA000) {
+				break;
+
+			case (0xA000):
 
 				I = (short) (args & 0x0fff);
 				logToDebugger("ld " + I);
 				PC += 2;
-			}
-			if (id == 0xb000) {
+				break;
+
+			case (0xb000):
 				logToDebugger("jmplded" + (args & 0x0fff));
 				PC = (args & 0x0fff) + I;
-			}
-			if (id == 0xc000) {
-				logToDebugger("rndand" + ((args & 0xf00) >> 8) + "," + (args & 0xff) + "");
+				break;
+			case (0xc000):
+				logToDebugger("rnd" + ((args & 0xf00) >> 8) + "," + (args & 0xff) + "");
 				Xreg = (args & 0xf00) >> 8;
-				int nextInt = Randomizer.getValue();
-				//
-				regV[Xreg] = (byte) ((byte) nextInt & toUnsignedInt((byte) (args & 0xff)));
+				regV[Xreg] ^= regV[Xreg];
+				regV[Xreg] += ((byte) new Random().nextInt(255)) & args & 0xff;
 				PC += 2;
+				break;
 			}
 			if (id == 0xd000) {
 				logToDebugger(
@@ -558,7 +533,8 @@ public class CPU implements Runnable {
 				for (int Y = 0; Y < height; Y++) {
 					byte pixel = memory[I + Y];
 					for (int X = 0; X < 8; X++) {
-						byte num = (byte) (pixel & (0x80 >>> X));
+						byte num = 0;
+						num += (pixel & (0x80 >>> X));
 						if (num != 0) {
 
 							int screenRX = valX + X;
@@ -593,6 +569,7 @@ public class CPU implements Runnable {
 				Graphics.Draw(screen, "");
 				// Timers.setAfter(System.currentTimeMillis());
 				PC += 2;
+				return;
 			}
 			if (id == 0xe000) {
 				if (0x9e == (args & 0xff)) {
@@ -616,49 +593,48 @@ public class CPU implements Runnable {
 
 			}
 			if (id == 0xf000) {
-				if (0x07 == (args & 0xff)) {
-
+				int copyIndex;
+				switch (args & 0xff) {
+				case (0x07):
 					Xreg = (args & 0xf00) >> 8;
 					logToDebugger("unlddt V[" + Xreg + "]");
 					regV[Xreg] = (byte) Timers.getDelayTimer();
 					PC += 2;
-				}
-				if (0x0a == (args & 0xff)) {
-					// To be implemented
+					break;
+				case (0x0a):
 					Xreg = (args & 0xf00) >> 8;
 					logToDebugger("waitkpld V[ " + Xreg + "]");
 					if (keyIsPressed || Keyboard.getLastPressed() != -1) {
 						regV[Xreg] = (byte) lastPressed;
 						PC += 2;
 					}
-				}
-				if (0x15 == (args & 0xff)) {
+					break;
+				case (0x15):
 					Xreg = (args & 0xf00) >> 8;
 					logToDebugger("lddtfreg V[" + Xreg + "]");
 					Timers.setDelayTimer(regV[Xreg]);
 					PC += 2;
-				}
-				if (0x18 == (args & 0xff)) {
+					break;
+				case (0x18):
 					Xreg = (args & 0xf00) >> 8;
 					logToDebugger("ldstfreg V[" + Xreg + "]");
 					Timers.setSoundTimer(regV[Xreg]);
 					PC += 2;
-				}
-				if (0x1E == (args & 0xff)) {
+					break;
+				case (0x1e):
 					Xreg = (args & 0xf00) >> 8;
 					logToDebugger("addi V[" + Xreg + "]");
 					I += toUnsignedInt(regV[Xreg]);
 					PC += 2;
-				}
-				if (0x29 == (args & 0xff)) {
+					break;
+				case (0x29):
 					Xreg = (args & 0xf00) >> 8;
 //					I = charAddress[regV[Xreg]];
 					logToDebugger("ldspr V[" + Xreg + "]");
 					I = (short) toUnsignedInt((byte) (regV[Xreg] * 0x5));
 					PC += 2;
-				}
-				if (0x33 == (args & 0xff)) {
-
+					break;
+				case (0x33):
 					Xreg = (args & 0xf00) >> 8;
 					short valueTobcd = (short) toUnsignedInt(regV[Xreg]);
 					logToDebugger("BCD V[" + Xreg + "]");
@@ -666,10 +642,9 @@ public class CPU implements Runnable {
 					memory[I + 1] = (byte) ((valueTobcd / 10) % 10);
 					memory[I + 2] = (byte) ((valueTobcd % 100) % 10);
 					PC += 2;
-
-				}
-				if (0x55 == (args & 0xff)) {
-					int copyIndex = (args & 0xf00) >> 8;
+					break;
+				case (0x55):
+					copyIndex = (args & 0xf00) >> 8;
 					logToDebugger("rgdump [" + I + "],V[" + copyIndex + "]");
 
 //					for (int i = 0; i <= copyIndex; i++) {
@@ -677,16 +652,18 @@ public class CPU implements Runnable {
 //					}
 					System.arraycopy(regV, 0, memory, I, copyIndex + 1);
 					PC += 2;
-				}
-				if (0x65 == (args & 0xff)) {
-					int copyIndex = (args & 0xf00) >> 8;
+					break;
+				case (0x65):
+					copyIndex = (args & 0xf00) >> 8;
 					logToDebugger("memdump V[" + copyIndex + "]," + copyIndex + "");
 //					for (int i = 0; i <= copyIndex; i++) {
 //						regV[i] = memory[I + i];
 //					}
 					System.arraycopy(memory, I + 0, regV, 0, copyIndex + 1);
 					PC += 2;
-
+					break;
+				default:
+					break;
 				}
 			}
 
