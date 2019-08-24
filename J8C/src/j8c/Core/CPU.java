@@ -21,6 +21,7 @@ public class CPU implements Runnable {
 	private byte[] regV = new byte[0x10];
 	private short I = 0x00;
 	private byte screen[] = new byte[64 * 32];
+	private byte HRScreen[] = new byte[128 * 32];
 	protected int opcode;
 	private boolean[] Keys;
 
@@ -34,6 +35,7 @@ public class CPU implements Runnable {
 	@SuppressWarnings("unused")
 	private static boolean controllerQueue = false;
 	private static boolean breakTheEmu = false;
+	private static int renderMode = 0;
 
 	// private static boolean pauseTheEmu=false;
 	// Hexadecimal F == Binary 1111
@@ -65,7 +67,7 @@ public class CPU implements Runnable {
 				lastPressed = Keyboard.getLastPressed();
 				controllerQueue = false;
 				cycle();
-				
+
 			}
 		}
 
@@ -398,15 +400,32 @@ public class CPU implements Runnable {
 			int Yreg = -1;
 			byte value = 0;
 			switch (id) {
-
+			
 			case 0x0:
+				switch(args&0x0f0) {
+					case(0x0b0):
+						logToDebugger("ToBeIMplemented");
+						break;
+					case(0x0c0):
+						logToDebugger("ToBeIMplemented");
+				break;
+				
+				}
 				switch (args) {
 				case (0x0E0):
 					logToDebugger("clsc");
-					for (int i = 0; i < screen.length; ++i) {
-						screen[i] = 0;
+					if (renderMode == 0) {
+						for (int i = 0; i < screen.length; ++i) {
+							screen[i] = 0;
+						}
+						Graphics.Draw(screen, 1);
+					} else {
+						for (int i = 0; i < HRScreen.length; ++i) {
+							screen[i] = 0;
+						}
+						Graphics.Draw(HRScreen, 1);
 					}
-					Graphics.Draw(screen, "");
+					
 					PC += 2;
 					break;
 				case (0x0ee):
@@ -514,13 +533,14 @@ public class CPU implements Runnable {
 				regV[Xreg] += ((byte) new Random().nextInt(255)) & args & 0xff;
 				PC += 2;
 				break;
-			}
-			if (id == 0xd000) {
+
+			case (0xd000):
 				logToDebugger(
 						"drw V[" + ((args & 0xF00) >> 8) + "],V[" + (byte) ((args & 0x0f0) >> 4) + "]," + (args & 0xf));
 				// Draw
 				// Tela 64*32
 				// Timers.setCurrent(System.currentTimeMillis());
+
 				short valX = (short) toUnsignedInt(regV[(args & 0xf00) >> 8]);
 				short valY = (short) toUnsignedInt(regV[(args & 0xf0) >> 4]);
 				int height = args & 0xf;
@@ -560,11 +580,11 @@ public class CPU implements Runnable {
 						}
 					}
 				}
+				Graphics.Draw(screen, renderMode);
 
-				Graphics.Draw(screen, "");
 				// Timers.setAfter(System.currentTimeMillis());
 				PC += 2;
-				return;
+				break;
 			}
 			if (id == 0xe000) {
 				if (0x9e == (args & 0xff)) {
