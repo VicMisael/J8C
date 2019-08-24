@@ -271,7 +271,6 @@ public class CPU implements Runnable {
 			pointer--;
 			if (pointer > -1) {
 				int value = stack[pointer];
-				stack[pointer] = 0;
 				return value;
 			} else {
 				System.out.println("Stack pointer is negative, W T F?");
@@ -293,10 +292,6 @@ public class CPU implements Runnable {
 		}
 
 		public static void reset() {
-			for (int i = 0; i < stack.length; i++) {
-				stack[i] = 0;
-
-			}
 			pointer = 0;
 		}
 	}
