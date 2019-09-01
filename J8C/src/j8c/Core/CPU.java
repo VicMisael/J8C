@@ -7,6 +7,8 @@ package j8c.Core;
 
 import java.util.Random;
 
+import javax.swing.JOptionPane;
+
 import j8c.Debugger;
 
 /**
@@ -17,11 +19,11 @@ public class CPU implements Runnable {
 	private static CPU cpu = null;
 	private byte[] memory = new byte[4096];
 	private int PC = 0x0;
-	private short[] charAddress = new short[16];
+	// private short[] charAddress = new short[16];
 	private byte[] regV = new byte[0x10];
 	private short I = 0x00;
 	private byte screen[] = new byte[64 * 32];
-	private byte HRScreen[] = new byte[128 * 32];
+	private byte HRScreen[] = new byte[128 * 64];
 	protected int opcode;
 	private boolean[] Keys;
 
@@ -97,22 +99,37 @@ public class CPU implements Runnable {
 				0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 		};
 
-		int a = 0;
-		int b = 0;
+		short[] HRCharset = { 0xFF, 0xFF, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xFF, 0xFF, // 0
+				0x18, 0x78, 0x78, 0x18, 0x18, 0x18, 0x18, 0x18, 0xFF, 0xFF, // 1
+				0xFF, 0xFF, 0x03, 0x03, 0xFF, 0xFF, 0xC0, 0xC0, 0xFF, 0xFF, // 2
+				0xFF, 0xFF, 0x03, 0x03, 0xFF, 0xFF, 0x03, 0x03, 0xFF, 0xFF, // 3
+				0xC3, 0xC3, 0xC3, 0xC3, 0xFF, 0xFF, 0x03, 0x03, 0x03, 0x03, // 4
+				0xFF, 0xFF, 0xC0, 0xC0, 0xFF, 0xFF, 0x03, 0x03, 0xFF, 0xFF, // 5
+				0xFF, 0xFF, 0xC0, 0xC0, 0xFF, 0xFF, 0xC3, 0xC3, 0xFF, 0xFF, // 6
+				0xFF, 0xFF, 0x03, 0x03, 0x06, 0x0C, 0x18, 0x18, 0x18, 0x18, // 7
+				0xFF, 0xFF, 0xC3, 0xC3, 0xFF, 0xFF, 0xC3, 0xC3, 0xFF, 0xFF, // 8
+				0xFF, 0xFF, 0xC3, 0xC3, 0xFF, 0xFF, 0x03, 0x03, 0xFF, 0xFF, // 9
 
-		for (int i = 0; i < 80; i++) {
-			memory[i] = (byte) charset[i];
+		};
+		// Copy from a Chip8 Rust project
+		// https://github.com/stianeklund/chip8
+
+		for (int i = 0; i < 0x50; i++) {
+			memory[i] += charset[i];
+		}
+		for (int i = 0; i < HRCharset.length; i++) {
+			memory[i + 0x50] += HRCharset[i];
 		}
 
-		for (short c : charset) {
-			charset[a] = (byte) c;
-			a++;
-			if (a % 5 == 0 || a == 0) {
-				charAddress[b] = (short) a;
-				b++;
-			}
-
-		}
+//		for (short c : charset) {
+//			charset[a] = (byte) c;
+//			a++;
+//			if (a % 5 == 0 || a == 0) {
+//				charAddress[b] = (short) a;
+//				b++;
+//			}
+//
+//		}
 
 		// Charset has been set
 
@@ -144,6 +161,7 @@ public class CPU implements Runnable {
 		}
 		Graphics.cleanBl();
 		Stack.reset();
+		renderMode = 0;
 
 	}
 
@@ -198,6 +216,7 @@ public class CPU implements Runnable {
 		} else {
 
 			try {
+				//Thread.sleep(1000);
 				Thread.sleep(1);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
@@ -306,8 +325,13 @@ public class CPU implements Runnable {
 		int id = 0;
 		int args = 0;
 
-		public void logToDebugger(String logasm) {
+		public void error(String err) {
+			JOptionPane.showMessageDialog(null, err, "SC8", JOptionPane.ERROR_MESSAGE);
+			CPU.getInstance().stopCPU();
+		}
 
+		public void logToDebugger(String logasm) {
+			//System.out.println(logasm);
 			if (Debugger.isDebuggerStarted()) {
 				asm = logasm;
 			}
@@ -320,6 +344,7 @@ public class CPU implements Runnable {
 		public Instruction(int id, int args) {
 			this.id = id;
 			this.args = args;
+			//System.out.println(Integer.toHexString(id|args));
 
 		}
 
@@ -400,16 +425,35 @@ public class CPU implements Runnable {
 			int Yreg = -1;
 			byte value = 0;
 			switch (id) {
-			
+
 			case 0x0:
-				switch(args&0x0f0) {
-					case(0x0b0):
-						logToDebugger("ToBeIMplemented");
-						break;
-					case(0x0c0):
-						logToDebugger("ToBeIMplemented");
-				break;
-				
+				switch (args & 0x0f0) {
+				case (0x0b0):
+					// error("Not yet Implemented 0x" + Integer.toHexString(opcode));
+					int height = args & 0xf;
+					logToDebugger("scrdwn " + height);
+
+					if (renderMode == 1) {
+//						for (int i = 0; i < height; i++) {
+//						}
+						for (int y = 0; y < 64; y++) {
+							for (int x = 0; x < 128; x++) {
+								if (y + height < 128) {
+									screen[x + (y + height) * 128] = screen[x + y * 128];
+									if (x <= height) {
+										screen[x + y * 128] = 0;
+									}
+								} else {
+									break;
+								}
+
+							}
+						}
+
+					}
+					PC += 2;
+					break;
+
 				}
 				switch (args) {
 				case (0x0E0):
@@ -418,19 +462,96 @@ public class CPU implements Runnable {
 						for (int i = 0; i < screen.length; ++i) {
 							screen[i] = 0;
 						}
-						Graphics.Draw(screen, 1);
+						Graphics.Draw(screen, renderMode);
 					} else {
 						for (int i = 0; i < HRScreen.length; ++i) {
-							screen[i] = 0;
+							HRScreen[i] = 0;
 						}
-						Graphics.Draw(HRScreen, 1);
+						Graphics.Draw(HRScreen, renderMode);
 					}
-					
+
 					PC += 2;
 					break;
 				case (0x0ee):
 					logToDebugger("ret");
 					PC = Stack.pop();
+					PC += 2;
+					break;
+				case (0x00FB):
+					logToDebugger("scrle");
+					// error("Not yet Implemented 0x" + Integer.toHexString(opcode));
+					if (renderMode == 0) {
+						for (int y = 0; y < 32; y++) {
+
+							for (int x = 63; x >= 0; x--) {
+								if (x - 4 >= 0) {
+									screen[x + y * 64] = screen[x - 4 + y * 64];
+									screen[x - 4 + y * 64] = 0;
+								}
+
+							}
+						}
+
+					} else if (renderMode == 1) {
+
+						for (int y = 0; y < 64; y++) {
+
+							for (int x = 127; x >= 4; x--) {
+
+								HRScreen[x + y * 128] = HRScreen[x - 4 + y * 128];
+								HRScreen[x - 4 + y * 128] = 0;
+
+							}
+						}
+					}
+					PC += 2;
+					// Scroll display 4 pixels to the right.
+					break;
+				case (0x00FC):
+					logToDebugger("scrri");
+					// error("Not yet Implemented 0x" + Integer.toHexString(opcode));
+					if (renderMode == 0) {
+						for (int y = 0; y < 32; y++) {
+
+							for (int x = 0; x < 60; x++) {
+								screen[x + y * 64] = screen[(x + 4) + y * 64];
+							}
+						}
+
+					} else if (renderMode == 1) {
+
+						for (int y = 0; y < 64; y++) {
+
+							for (int x = 0; x < 124; x++) {
+								HRScreen[x + y * 128] = HRScreen[(x + 4) + y * 128];
+								if (x + 4 >= 123) {
+									HRScreen[(x + 4) + y * 64] = 0;
+								}
+							}
+						}
+					}
+					PC += 2;
+
+					// Scroll display 4 pixels to the left.
+					break;
+				case (0x00FD):
+					// error("Not yet Implemented 0x" + Integer.toHexString(opcode));
+					logToDebugger("quit");
+					error("Exit call");
+					// Exit the interpreter.
+					break;
+				case (0x00FE):
+					// error("Not yet Implemented 0x"+Integer.toHexString(opcode));
+					logToDebugger("lowRes");
+					// Enable low res (64x32) mode.
+					renderMode = 0;
+					PC += 2;
+					break;
+				case (0x00FF):
+					// error("Not yet Implemented 0x"+Integer.toHexString(opcode));
+					logToDebugger("highres");
+					// Enable high res (128x64) mode.
+					renderMode = 1;
 					PC += 2;
 					break;
 				}
@@ -545,48 +666,127 @@ public class CPU implements Runnable {
 				short valY = (short) toUnsignedInt(regV[(args & 0xf0) >> 4]);
 				int height = args & 0xf;
 				regV[0xf] = 0;
-				for (int Y = 0; Y < height; Y++) {
-					byte pixel = memory[I + Y];
-					for (int X = 0; X < 8; X++) {
-						byte num = 0;
-						num += (pixel & (0x80 >>> X));
-						if (num != 0) {
+				if (renderMode == 0) {
+					for (int Y = 0; Y < height; Y++) {
+						byte pixel = memory[I + Y];
+						for (int X = 0; X < 8; X++) {
 
-							int screenRX = valX + X;
-							int screenRY = valY + Y;
-							// System.out.println(screenRX);
-							// System.out.println(screenRY);
-							int a = 0;
-							if ((screenRX >= 64 || screenRY >= 32)) {
-								if (Options.getInstance().isXWrappingEnabled()) {
-									for (a = screenRX / 64; a > 0; a--) {
-										screenRX -= 64;
+							byte num = (byte) ((pixel & (0x80 >>> X)));
+							if (num != 0) {
 
+								int screenRX = valX + X;
+								int screenRY = valY + Y;
+								// System.out.println(screenRX);
+								// System.out.println(screenRY);
+								int a = 0;
+								if ((screenRX >= 64 || screenRY >= 32)) {
+									if (Options.getInstance().isXWrappingEnabled()) {
+										for (a = screenRX / 64; a > 0; a--) {
+											screenRX -= 64;
+
+										}
+									}
+									if (Options.getInstance().isXWrappingEnabled()) {
+										for (a = screenRY / 32; a > 0; a--) {
+											screenRY -= 32;
+										}
 									}
 								}
-								if (Options.getInstance().isXWrappingEnabled()) {
-									for (a = screenRY / 32; a > 0; a--) {
-										screenRY -= 32;
-									}
+								int index = (screenRX + ((screenRY) * 64));
+
+								if (screen[index] == 1) {
+									regV[0xf] = 1;
 								}
-							}
-							int index = (screenRX + ((screenRY) * 64));
+								screen[index] ^= 1;
 
-							if (screen[index] == 1) {
-								regV[0xf] = 1;
 							}
-							screen[index] ^= 1;
-
 						}
 					}
+					Graphics.Draw(screen, renderMode);
+				} else if (renderMode == 1) {
+					if (height == 0) {
+						for (int Y = 0; Y < 16; Y++) {
+							byte pixel = memory[I + Y];
+							for (int X = 0; X < 16; X++) {
+
+								byte num = (byte) (pixel & (0x8000 >>> X));
+								if (num != 0) {
+
+									int screenRX = valX + X;
+									int screenRY = valY + Y;
+									// System.out.println(screenRX);
+									// System.out.println(screenRY);
+									int a = 0;
+									if ((screenRX >= 128 || screenRY >= 64)) {
+										if (Options.getInstance().isXWrappingEnabled()) {
+											for (a = screenRX / 128; a > 0; a--) {
+												screenRX -= 128;
+
+											}
+										}
+										if (Options.getInstance().isXWrappingEnabled()) {
+											for (a = screenRY / 64; a > 0; a--) {
+												screenRY -= 64;
+											}
+										}
+									}
+									int index = (screenRX + ((screenRY) * 128));
+
+									if (HRScreen[index] == 1) {
+										regV[0xf] = 1;
+									}
+									HRScreen[index] ^= 1;
+
+								}
+							}
+						}
+					} else {
+						for (int Y = 0; Y < height; Y++) {
+							byte pixel = memory[I + Y];
+							for (int X = 0; X < 8; X++) {
+
+								byte num = (byte) ((pixel & (0x80 >>> X)));
+								if (num != 0) {
+
+									int screenRX = valX + X;
+									int screenRY = valY + Y;
+									// System.out.println(screenRX);
+									// System.out.println(screenRY);
+									int a = 0;
+									if ((screenRX >= 128 || screenRY >= 64)) {
+										if (Options.getInstance().isXWrappingEnabled()) {
+											for (a = screenRX / 128; a > 0; a--) {
+												screenRX -= 128;
+
+											}
+										}
+										if (Options.getInstance().isXWrappingEnabled()) {
+											for (a = screenRY / 64; a > 0; a--) {
+												screenRY -= 64;
+											}
+										}
+									}
+									int index = (screenRX + ((screenRY) * 128));
+
+									if (HRScreen[index] == 1) {
+										regV[0xf] = 1;
+									}
+									HRScreen[index] ^= 1;
+
+								}
+							}
+						}
+
+					}
+
+					Graphics.Draw(HRScreen, renderMode);
 				}
-				Graphics.Draw(screen, renderMode);
 
 				// Timers.setAfter(System.currentTimeMillis());
 				PC += 2;
 				break;
-			}
-			if (id == 0xe000) {
+
+			case (0xe000):
 				if (0x9e == (args & 0xff)) {
 					Xreg = (args & 0xf00) >> 8;
 					if (Keys[regV[Xreg]]) {
@@ -595,6 +795,7 @@ public class CPU implements Runnable {
 						PC += 2;
 					}
 					logToDebugger("skp V[" + Xreg + "]");
+					break;
 				}
 				if (0xA1 == (args & 0xff)) {
 					Xreg = (args & 0xf00) >> 8;
@@ -647,6 +848,14 @@ public class CPU implements Runnable {
 //					I = charAddress[regV[Xreg]];
 					logToDebugger("ldspr V[" + Xreg + "]");
 					I = (short) toUnsignedInt((byte) (regV[Xreg] * 0x5));
+					PC += 2;
+					break;
+				case (0x30):
+					// error("Not yet Implemented 0x" + Integer.toHexString(opcode));
+					Xreg = (args & 0xf00) >> 8;
+//					I = charAddress[regV[Xreg]];
+					logToDebugger("ldspr V[" + Xreg + "]");
+					I = (short) toUnsignedInt((byte) (regV[Xreg] * 0xA));
 					PC += 2;
 					break;
 				case (0x33):

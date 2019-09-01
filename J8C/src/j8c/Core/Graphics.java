@@ -5,7 +5,7 @@ import j8c.MainGUI;
 
 public class Graphics {
 	public static void Draw(byte[] screen,int mode) {
-		MainGUI.drawToCanvas(screen);
+		MainGUI.drawToCanvas(screen, mode);
 
 
 	}
@@ -14,7 +14,7 @@ public class Graphics {
 		for(int a=0;a<screen.length;a++) {
 			screen[a]=0;
 		}
-		MainGUI.drawToCanvas(screen);
+		MainGUI.drawToCanvas(screen,-1);
 	}
 
 

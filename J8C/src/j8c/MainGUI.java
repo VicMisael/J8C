@@ -63,13 +63,13 @@ public class MainGUI extends JFrame {
 		});
 	}
 
-	public MainGUI() throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
+	public MainGUI() throws ClassNotFoundException, InstantiationException, IllegalAccessException,
+			UnsupportedLookAndFeelException {
 		setResizable(false);
-		
+
 		setTitle("JC8");
 		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		initComponents();
-		
 
 	}
 
@@ -116,7 +116,7 @@ public class MainGUI extends JFrame {
 		mntmDebugger.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Debugger.getInstance().setVisible(true);
-				
+
 			}
 		});
 
@@ -126,13 +126,15 @@ public class MainGUI extends JFrame {
 				OptionsMenu.getOptionsMenu().setVisible(true);
 			}
 		});
-		
+
 		mnNewMenu.add(mntmOptions);
 		mnAbout.addMenuListener(new MenuListener() {
 			public void menuCanceled(MenuEvent e) {
 			}
+
 			public void menuDeselected(MenuEvent e) {
 			}
+
 			public void menuSelected(MenuEvent e) {
 				EventQueue.invokeLater(new Runnable() {
 					public void run() {
@@ -160,7 +162,7 @@ public class MainGUI extends JFrame {
 				});
 			}
 		});
-		
+
 		menuBar.add(mnAbout);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -253,7 +255,7 @@ public class MainGUI extends JFrame {
 
 	}
 
-	public static void drawToCanvas(byte[] screen) {
+	public static void drawToCanvas(byte[] screen, int mode) {
 		// y=32Pixels,X=64 pixels, CanvasX=384 canvasY=192
 		if (canvas.getBufferStrategy() == null) {
 			canvas.createBufferStrategy(2);
@@ -261,12 +263,23 @@ public class MainGUI extends JFrame {
 
 		BufferedImage bimage = new BufferedImage(64, 32, BufferedImage.TYPE_INT_RGB);
 		int value = 0;
-		for (int y = 0; y < 32; y++) {
-			for (int x = 0; x < 64; x++) {
-				value = screen[x + y * 64] == 1 ? 0xffffff : 0x0;	
-			
+		if (mode == 0) {
+			for (int y = 0; y < 32; y++) {
+				for (int x = 0; x < 64; x++) {
+					value = screen[x + y * 64] == 1 ? 0xffffff : 0x0;
 
-				bimage.setRGB(x, y, value);
+					bimage.setRGB(x, y, value);
+				}
+			}
+		} else if (mode == 1) {
+			bimage = null;
+			bimage = new BufferedImage(128, 64, BufferedImage.TYPE_INT_RGB);
+			for (int y = 0; y < 64; y++) {
+				for (int x = 0; x < 128; x++) {
+					value = screen[x + y * 128] == 1 ? 0xffffff : 0x0;
+
+					bimage.setRGB(x, y, value);
+				}
 			}
 		}
 
