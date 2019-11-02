@@ -40,6 +40,7 @@ public class Debugger extends JFrame {
 	private JLabel StackPointer;
 	private JLabel InstructionLbl;
 	private JCheckBox logAsmToCmd;
+	private JLabel labelByteInst;
 
 	/**
 	 * Launch the application.
@@ -182,6 +183,14 @@ public class Debugger extends JFrame {
 		InstructionLbl.setBackground(Color.WHITE);
 		InstructionLbl.setBounds(167, 160, 108, 14);
 		contentPane.add(InstructionLbl);
+		
+		JLabel lblHexByteInstruction = new JLabel("hex byte instruction:");
+		lblHexByteInstruction.setBounds(167, 178, 108, 14);
+		contentPane.add(lblHexByteInstruction);
+		
+		labelByteInst = new JLabel("0");
+		labelByteInst.setBounds(167, 194, 46, 14);
+		contentPane.add(labelByteInst);
 
 	}
 
@@ -206,8 +215,8 @@ public class Debugger extends JFrame {
 		return this.sleepTimeVar;
 	}
 
-	public void updateRegisters(byte[] Registers, short I, int[] Stack, String lastStackOp, int pointer, int PC,
-			String asm) {
+	public void updateRegisters(byte[] Registers, short I, int[] Stack, String lastStackOp, int pointer, int PC
+			,int opcode,String asm) {
 		DefaultTableModel model = (DefaultTableModel) registerTable.getModel();
 
 		if (chckbxShowInHex.isSelected()) {
@@ -241,9 +250,13 @@ public class Debugger extends JFrame {
 		operation.setText(lastStackOp);
 		StackPointer.setText(String.valueOf(pointer));
 		InstructionLbl.setText(asm);
+		labelByteInst.setText(Integer.toHexString(opcode));
 		if (logAsmToCmd.isSelected()) {
 			System.out.println(asm);
 		}
 
+	}
+	public JLabel getLabelByteInst() {
+		return labelByteInst;
 	}
 }

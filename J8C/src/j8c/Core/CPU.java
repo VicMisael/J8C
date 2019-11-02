@@ -5,6 +5,7 @@
  */
 package j8c.Core;
 
+import java.util.Arrays;
 import java.util.Random;
 
 import javax.swing.JOptionPane;
@@ -16,7 +17,14 @@ import j8c.Debugger;
  * @author Misael
  */
 public class CPU implements Runnable {
+	// Static fields
 	private static CPU cpu = null;
+	private static Thread CPUThread;
+	private static boolean pause = false;
+	@SuppressWarnings("unused")
+	private static boolean controllerQueue = false;
+	private static boolean breakTheEmu = false;
+	// non-static fields
 	private byte[] memory = new byte[4096];
 	private int PC = 0x0;
 	// private short[] charAddress = new short[16];
@@ -26,18 +34,14 @@ public class CPU implements Runnable {
 	private byte HRScreen[] = new byte[128 * 64];
 	protected int opcode;
 	private boolean[] Keys;
-
+	private final byte[] zero64 = new byte[64];
+	private final byte[] zero128 = new byte[128];
 	private int lastPressed = -1;
 	private boolean keyIsPressed = false;
 	private String asm = "";
 	// private boolean drawFlag = true;
-	private static Thread CPUThread;
 
-	private static boolean pause = false;
-	@SuppressWarnings("unused")
-	private static boolean controllerQueue = false;
-	private static boolean breakTheEmu = false;
-	private static int renderMode = 0;
+	private int renderMode = 0;
 
 	// private static boolean pauseTheEmu=false;
 	// Hexadecimal F == Binary 1111
@@ -109,11 +113,19 @@ public class CPU implements Runnable {
 				0xFF, 0xFF, 0x03, 0x03, 0x06, 0x0C, 0x18, 0x18, 0x18, 0x18, // 7
 				0xFF, 0xFF, 0xC3, 0xC3, 0xFF, 0xFF, 0xC3, 0xC3, 0xFF, 0xFF, // 8
 				0xFF, 0xFF, 0xC3, 0xC3, 0xFF, 0xFF, 0x03, 0x03, 0xFF, 0xFF, // 9
+				0x7E, 0xFF, 0xC3, 0xC3, 0xC3, 0xFF, 0xFf, 0xC3, 0xC3, 0xC3, // A
+				0xFC, 0xFC, 0xC3, 0xC3, 0xFC, 0xFC, 0xC3, 0xC3, 0xFC, 0xFC, // B
+				0x3C, 0xFF, 0xC3, 0xC0, 0xC0, 0xC0, 0xC0, 0xC3, 0xFF, 0x3C, // C
+				0xFC, 0xFE, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xFE, 0xFC, // D
+				0xFF, 0xFF, 0xC0, 0xC0, 0xFF, 0xFF, 0xC0, 0xC0, 0xFF, 0xFF, // E
+				0xFF, 0xFF, 0xC0, 0xC0, 0xFF, 0xFF, 0xC0, 0xC0, 0xC0, 0xC0, // F
 
 		};
 		// Copy from a Chip8 Rust project
 		// https://github.com/stianeklund/chip8
-
+		Arrays.fill(zero64, (byte) 0);
+		Arrays.fill(memory, (byte) 0);
+		Arrays.fill(zero128, (byte) 0);
 		for (int i = 0; i < 0x50; i++) {
 			memory[i] += charset[i];
 		}
@@ -159,8 +171,12 @@ public class CPU implements Runnable {
 		for (int i = 0; i < screen.length; i++) {
 			screen[i] = 0;
 		}
+		for (int i = 0; i < HRScreen.length; i++) {
+			HRScreen[i] = 0;
+		}
 		Graphics.cleanBl();
 		Stack.reset();
+		Timers.reset();
 		renderMode = 0;
 
 	}
@@ -216,7 +232,7 @@ public class CPU implements Runnable {
 		} else {
 
 			try {
-				//Thread.sleep(1000);
+				// Thread.sleep(1000);
 				Thread.sleep(1);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
@@ -228,7 +244,7 @@ public class CPU implements Runnable {
 
 	public void logToRegisterWatch() {
 		Debugger.getInstance().updateRegisters(regV, I, Stack.getData(), Stack.getLastOp(), Stack.getPointer(), PC,
-				asm);
+				opcode, asm);
 	}
 
 	private void loadMemory() {
@@ -331,7 +347,7 @@ public class CPU implements Runnable {
 		}
 
 		public void logToDebugger(String logasm) {
-			//System.out.println(logasm);
+			// System.out.println(logasm);
 			if (Debugger.isDebuggerStarted()) {
 				asm = logasm;
 			}
@@ -344,7 +360,7 @@ public class CPU implements Runnable {
 		public Instruction(int id, int args) {
 			this.id = id;
 			this.args = args;
-			//System.out.println(Integer.toHexString(id|args));
+			// System.out.println(Integer.toHexString(id|args));
 
 		}
 
@@ -428,28 +444,36 @@ public class CPU implements Runnable {
 
 			case 0x0:
 				switch (args & 0x0f0) {
-				case (0x0b0):
+				case (0x0c0):
 					// error("Not yet Implemented 0x" + Integer.toHexString(opcode));
 					int height = args & 0xf;
-					logToDebugger("scrdwn " + height);
 
-					if (renderMode == 1) {
+					logToDebugger("scrdwn " + height);
+					if (renderMode == 0) {
 //						for (int i = 0; i < height; i++) {
 //						}
-						for (int y = 0; y < 64; y++) {
-							for (int x = 0; x < 128; x++) {
-								if (y + height < 128) {
-									screen[x + (y + height) * 128] = screen[x + y * 128];
-									if (x <= height) {
-										screen[x + y * 128] = 0;
-									}
-								} else {
-									break;
-								}
-
+						while (height > 0) {
+							int y = 31;
+							while (y > 0) {
+								System.arraycopy(screen, (y - 1) * 64, screen, y * 64, 64);
+								y--;
 							}
+							System.arraycopy(zero64, 0, screen, 0, 64);
+							height--;
 						}
 
+					} else if (renderMode == 1) {
+//						for (int i = 0; i < height; i++) {
+//						}
+						while (height > 0) {
+							int y = 63;
+							while (y > 0) {
+								System.arraycopy(HRScreen, (y - 1) * 128, HRScreen, y * 128, 128);
+								y--;
+							}
+							System.arraycopy(zero128, 0, HRScreen, 0, 128);
+							height--;
+						}
 					}
 					PC += 2;
 					break;
@@ -477,61 +501,60 @@ public class CPU implements Runnable {
 					PC = Stack.pop();
 					PC += 2;
 					break;
+
 				case (0x00FB):
-					logToDebugger("scrle");
-					// error("Not yet Implemented 0x" + Integer.toHexString(opcode));
-					if (renderMode == 0) {
-						for (int y = 0; y < 32; y++) {
-
-							for (int x = 63; x >= 0; x--) {
-								if (x - 4 >= 0) {
-									screen[x + y * 64] = screen[x - 4 + y * 64];
-									screen[x - 4 + y * 64] = 0;
-								}
-
-							}
-						}
-
-					} else if (renderMode == 1) {
-
-						for (int y = 0; y < 64; y++) {
-
-							for (int x = 127; x >= 4; x--) {
-
-								HRScreen[x + y * 128] = HRScreen[x - 4 + y * 128];
-								HRScreen[x - 4 + y * 128] = 0;
-
-							}
-						}
-					}
-					PC += 2;
-					// Scroll display 4 pixels to the right.
-					break;
-				case (0x00FC):
 					logToDebugger("scrri");
 					// error("Not yet Implemented 0x" + Integer.toHexString(opcode));
 					if (renderMode == 0) {
 						for (int y = 0; y < 32; y++) {
-
-							for (int x = 0; x < 60; x++) {
-								screen[x + y * 64] = screen[(x + 4) + y * 64];
-							}
+							byte nextLine[] = new byte[64];
+//							for (int b = 0; b < 4; b++) {
+//								nextLine[b] = 0;
+//							}
+							System.arraycopy(screen, y * 64, nextLine, 4, 60);
+							System.arraycopy(nextLine, 0, screen, y * 64, 64);
+//					
 						}
 
 					} else if (renderMode == 1) {
 
 						for (int y = 0; y < 64; y++) {
-
-							for (int x = 0; x < 124; x++) {
-								HRScreen[x + y * 128] = HRScreen[(x + 4) + y * 128];
-								if (x + 4 >= 123) {
-									HRScreen[(x + 4) + y * 64] = 0;
-								}
-							}
+							byte nextLine[] = new byte[128];
+//							for (int b = 0; b < 4; b++) {
+//								nextLine[b] = 0;
+//							}
+							System.arraycopy(HRScreen, y * 128, nextLine, 4, 124);
+							System.arraycopy(nextLine, 0, HRScreen, y * 128, 128);
+//					
 						}
 					}
 					PC += 2;
 
+					// Scroll display 4 pixels to the right.
+					break;
+				case (0x00FC):
+					logToDebugger("scrle");
+					// error("Not yet Implemented 0x" + Integer.toHexString(opcode));
+					if (renderMode == 0) {
+						for (int y = 0; y < 32; y++) {
+							byte nextLine[] = new byte[64];
+
+							System.arraycopy(screen, (y * 64) + 4, nextLine, 0, 60);
+							System.arraycopy(nextLine, 0, screen, y * 64, 64);
+						}
+
+					} else if (renderMode == 1) {
+
+						for (int y = 0; y < 64; y++) {
+							byte nextLine[] = new byte[128];
+
+							System.arraycopy(HRScreen, (y * 128) + 4, nextLine, 0, 124);
+							System.arraycopy(nextLine, 0, HRScreen, y * 128, 128);
+//					
+
+						}
+					}
+					PC += 2;
 					// Scroll display 4 pixels to the left.
 					break;
 				case (0x00FD):
@@ -543,6 +566,7 @@ public class CPU implements Runnable {
 				case (0x00FE):
 					// error("Not yet Implemented 0x"+Integer.toHexString(opcode));
 					logToDebugger("lowRes");
+					System.out.println("Low resolution mode on");
 					// Enable low res (64x32) mode.
 					renderMode = 0;
 					PC += 2;
@@ -550,6 +574,7 @@ public class CPU implements Runnable {
 				case (0x00FF):
 					// error("Not yet Implemented 0x"+Integer.toHexString(opcode));
 					logToDebugger("highres");
+					System.out.println("High Resolution Mode On");
 					// Enable high res (128x64) mode.
 					renderMode = 1;
 					PC += 2;
@@ -693,10 +718,11 @@ public class CPU implements Runnable {
 									}
 								}
 								int index = (screenRX + ((screenRY) * 64));
+//								if (screen[index] == 1) {
+//									regV[0xf] = 1;
+//								}
+								regV[0xf] = screen[index];
 
-								if (screen[index] == 1) {
-									regV[0xf] = 1;
-								}
 								screen[index] ^= 1;
 
 							}
@@ -706,10 +732,11 @@ public class CPU implements Runnable {
 				} else if (renderMode == 1) {
 					if (height == 0) {
 						for (int Y = 0; Y < 16; Y++) {
-							byte pixel = memory[I + Y];
+							byte pixel = (memory[I + Y]);
+							//byte pixel2 = (memory[I + Y + 1]);
 							for (int X = 0; X < 16; X++) {
-
-								byte num = (byte) (pixel & (0x8000 >>> X));
+								
+								byte num = (byte) ((pixel & (0x80 >>> X)));
 								if (num != 0) {
 
 									int screenRX = valX + X;
@@ -732,9 +759,11 @@ public class CPU implements Runnable {
 									}
 									int index = (screenRX + ((screenRY) * 128));
 
-									if (HRScreen[index] == 1) {
-										regV[0xf] = 1;
-									}
+//									if (HRScreen[index] == 1) {
+//										regV[0xf] = 1;
+//									}
+									// Collision is 1, so its just gonna copy
+									regV[0xf] = HRScreen[index];
 									HRScreen[index] ^= 1;
 
 								}
@@ -768,9 +797,10 @@ public class CPU implements Runnable {
 									}
 									int index = (screenRX + ((screenRY) * 128));
 
-									if (HRScreen[index] == 1) {
-										regV[0xf] = 1;
-									}
+//									if (HRScreen[index] == 1) {
+//										regV[0xf] = 1;
+//									}
+									regV[0xf] = HRScreen[index];
 									HRScreen[index] ^= 1;
 
 								}

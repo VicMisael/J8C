@@ -34,7 +34,11 @@ public class Timers {
 		}
 
 	}
-
+	public static void reset() {
+		soundTimer=0;
+		delayTimer=0;
+		
+	}
 	public static void setAfter(long after) {
 		afterMilis = after;
 		calculate();
