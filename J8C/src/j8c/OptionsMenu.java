@@ -59,7 +59,7 @@ public class OptionsMenu extends JFrame {
 		
 		
 		JCheckBox useOpenGL = new JCheckBox("Use Open GL");
-		useOpenGL.setSelected(true);
+		useOpenGL.setSelected(Options.getInstance().useOpenGl());
 		useOpenGL.setBounds(6, 49, 131, 23);
 		contentPane.add(useOpenGL);
 		btnSave.addActionListener(new ActionListener() {
