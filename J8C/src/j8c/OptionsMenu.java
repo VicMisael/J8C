@@ -56,10 +56,17 @@ public class OptionsMenu extends JFrame {
 		contentPane.add(chkboxEnXWrap);
 
 		JButton btnSave = new JButton("Save");
+		
+		
+		JCheckBox useOpenGL = new JCheckBox("Use Open GL");
+		useOpenGL.setSelected(true);
+		useOpenGL.setBounds(6, 49, 131, 23);
+		contentPane.add(useOpenGL);
 		btnSave.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Options.getInstance().setXWrapping(chkboxEnXWrap.isSelected());
 				Options.getInstance().setYWrapping(chkboxEnYWrap.isSelected());
+				Options.getInstance().setUseOpenGL(useOpenGL.isSelected());
 			}
 		});
 		btnSave.setBounds(34, 159, 89, 23);

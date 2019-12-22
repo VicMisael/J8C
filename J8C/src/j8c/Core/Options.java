@@ -3,6 +3,7 @@ package j8c.Core;
 public class Options {
 	private boolean XWrapping = true;
 	private boolean YWrapping = false;
+	private boolean useOpenGL = false;
 
 	private Options() {
 	}
@@ -22,10 +23,21 @@ public class Options {
 	public void setXWrapping(boolean xwrap) {
 		XWrapping = xwrap;
 	}
+
 	public boolean isYWrappingEnabled() {
 		return YWrapping;
 	}
+
 	public void setYWrapping(boolean ywrap) {
-		YWrapping=ywrap;
+		YWrapping = ywrap;
+	}
+
+	public void setUseOpenGL(boolean use) {
+		useOpenGL = use;
+
+	}
+
+	public boolean useOpenGl() {
+		return useOpenGL;
 	}
 }
