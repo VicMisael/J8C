@@ -422,8 +422,14 @@ public class CPU implements Runnable {
 				break;
 			case (0xe):
 				logToDebugger("lsftob V[" + Xreg + "]");
-				regV[0xf] = (byte) (regV[Xreg] & 0x80);
-				regV[Xreg] = (byte) ((regV[Xreg] << 1) & 0xFF);
+				if(!Options.getInstance().useDifferent8xye()) {
+					regV[0xf] = (byte) (regV[Yreg] & 0x80);
+					regV[Xreg] = (byte) ((regV[Yreg] << 1) & 0xFF);
+				}else {
+					regV[0xf] = (byte) (regV[Xreg] & 0x80);
+					regV[Xreg] = (byte) ((regV[Xreg] << 1) & 0xFF);
+				}
+				
 				break;
 			default:
 				System.out.println("Unknown math instruction" + Integer.toHexString(mathInstId));
@@ -579,6 +585,9 @@ public class CPU implements Runnable {
 					renderMode = 1;
 					PC += 2;
 					break;
+				default:
+					System.out.println("Uknown opcode" + Integer.toHexString(id|args));
+					break;
 				}
 				break;
 			case (0x1000):
@@ -718,13 +727,12 @@ public class CPU implements Runnable {
 									}
 								}
 								int index = (screenRX + ((screenRY) * 64));
-//								if (screen[index] == 1) {
-//									regV[0xf] = 1;
-//								}
-								regV[0xf] = screen[index];
+//								if(num==1 && screen[index]==1)
+//									regV[0xf] = screen[index];
 
 								screen[index] ^= 1;
-
+								if (screen[index] == 0 && regV[0xf] == 0)
+									regV[0xf] = 1;
 							}
 						}
 					}
@@ -733,9 +741,9 @@ public class CPU implements Runnable {
 					if (height == 0) {
 						for (int Y = 0; Y < 16; Y++) {
 							byte pixel = (memory[I + Y]);
-							//byte pixel2 = (memory[I + Y + 1]);
+							// byte pixel2 = (memory[I + Y + 1]);
 							for (int X = 0; X < 16; X++) {
-								
+
 								byte num = (byte) ((pixel & (0x80 >>> X)));
 								if (num != 0) {
 
@@ -763,9 +771,11 @@ public class CPU implements Runnable {
 //										regV[0xf] = 1;
 //									}
 									// Collision is 1, so its just gonna copy
-									regV[0xf] = HRScreen[index];
-									HRScreen[index] ^= 1;
 
+									// regV[0xf] = HRScreen[index];
+									HRScreen[index] ^= 1;
+									if (HRScreen[index] == 0 && regV[0xf] == 0)
+										regV[0xf] = 1;
 								}
 							}
 						}
@@ -800,8 +810,10 @@ public class CPU implements Runnable {
 //									if (HRScreen[index] == 1) {
 //										regV[0xf] = 1;
 //									}
-									regV[0xf] = HRScreen[index];
+									// regV[0xf] = HRScreen[index];
 									HRScreen[index] ^= 1;
+									if (HRScreen[index] == 0 && regV[0xf] == 0)
+										regV[0xf] = 1;
 
 								}
 							}
@@ -817,7 +829,8 @@ public class CPU implements Runnable {
 				break;
 
 			case (0xe000):
-				if (0x9e == (args & 0xff)) {
+				switch (args & 0xff) {
+				case (0x9e):
 					Xreg = (args & 0xf00) >> 8;
 					if (Keys[regV[Xreg]]) {
 						PC += 4;
@@ -826,8 +839,7 @@ public class CPU implements Runnable {
 					}
 					logToDebugger("skp V[" + Xreg + "]");
 					break;
-				}
-				if (0xA1 == (args & 0xff)) {
+				case (0xa1):
 					Xreg = (args & 0xf00) >> 8;
 					logToDebugger("sknp V[" + Xreg + "]");
 					if (!Keys[regV[Xreg]]) {
@@ -835,10 +847,14 @@ public class CPU implements Runnable {
 					} else {
 						PC += 2;
 					}
-				}
+					break;
+				default:
+					System.out.println("Uknown opcode" + Integer.toHexString(id|args));
+					break;
 
-			}
-			if (id == 0xf000) {
+				}
+				break;
+			case (0xf000):
 				int copyIndex;
 				switch (args & 0xff) {
 				case (0x07):
@@ -875,7 +891,7 @@ public class CPU implements Runnable {
 					break;
 				case (0x29):
 					Xreg = (args & 0xf00) >> 8;
-//					I = charAddress[regV[Xreg]];
+//				I = charAddress[regV[Xreg]];
 					logToDebugger("ldspr V[" + Xreg + "]");
 					I = (short) toUnsignedInt((byte) (regV[Xreg] * 0x5));
 					PC += 2;
@@ -883,7 +899,7 @@ public class CPU implements Runnable {
 				case (0x30):
 					// error("Not yet Implemented 0x" + Integer.toHexString(opcode));
 					Xreg = (args & 0xf00) >> 8;
-//					I = charAddress[regV[Xreg]];
+//				I = charAddress[regV[Xreg]];
 					logToDebugger("ldspr V[" + Xreg + "]");
 					I = (short) toUnsignedInt((byte) (regV[Xreg] * 0xA));
 					PC += 2;
@@ -901,25 +917,114 @@ public class CPU implements Runnable {
 					copyIndex = (args & 0xf00) >> 8;
 					logToDebugger("rgdump [" + I + "],V[" + copyIndex + "]");
 
-//					for (int i = 0; i <= copyIndex; i++) {
-//						memory[I + i] = regV[i];
-//					}
+//				for (int i = 0; i <= copyIndex; i++) {
+//					memory[I + i] = regV[i];
+//				}
 					System.arraycopy(regV, 0, memory, I, copyIndex + 1);
 					PC += 2;
 					break;
 				case (0x65):
 					copyIndex = (args & 0xf00) >> 8;
 					logToDebugger("memdump V[" + copyIndex + "]," + copyIndex + "");
-//					for (int i = 0; i <= copyIndex; i++) {
-//						regV[i] = memory[I + i];
-//					}
+//				for (int i = 0; i <= copyIndex; i++) {
+//					regV[i] = memory[I + i];
+//				}
 					System.arraycopy(memory, I + 0, regV, 0, copyIndex + 1);
 					PC += 2;
 					break;
 				default:
+					System.out.println("Uknown opcode" + Integer.toHexString(id|args));
 					break;
 				}
+
+				break;
+			default:
+				System.out.println("Uknown opcode" + Integer.toHexString(id|args));
+				break;
+
 			}
+//			if (id == 0xf000) {
+//				int copyIndex;
+//				switch (args & 0xff) {
+//				case (0x07):
+//					Xreg = (args & 0xf00) >> 8;
+//					logToDebugger("unlddt V[" + Xreg + "]");
+//					regV[Xreg] = (byte) Timers.getDelayTimer();
+//					PC += 2;
+//					break;
+//				case (0x0a):
+//					Xreg = (args & 0xf00) >> 8;
+//					logToDebugger("waitkpld V[ " + Xreg + "]");
+//					if (keyIsPressed || Keyboard.getLastPressed() != -1) {
+//						regV[Xreg] = (byte) lastPressed;
+//						PC += 2;
+//					}
+//					break;
+//				case (0x15):
+//					Xreg = (args & 0xf00) >> 8;
+//					logToDebugger("lddtfreg V[" + Xreg + "]");
+//					Timers.setDelayTimer(regV[Xreg]);
+//					PC += 2;
+//					break;
+//				case (0x18):
+//					Xreg = (args & 0xf00) >> 8;
+//					logToDebugger("ldstfreg V[" + Xreg + "]");
+//					Timers.setSoundTimer(regV[Xreg]);
+//					PC += 2;
+//					break;
+//				case (0x1e):
+//					Xreg = (args & 0xf00) >> 8;
+//					logToDebugger("addi V[" + Xreg + "]");
+//					I += toUnsignedInt(regV[Xreg]);
+//					PC += 2;
+//					break;
+//				case (0x29):
+//					Xreg = (args & 0xf00) >> 8;
+////					I = charAddress[regV[Xreg]];
+//					logToDebugger("ldspr V[" + Xreg + "]");
+//					I = (short) toUnsignedInt((byte) (regV[Xreg] * 0x5));
+//					PC += 2;
+//					break;
+//				case (0x30):
+//					// error("Not yet Implemented 0x" + Integer.toHexString(opcode));
+//					Xreg = (args & 0xf00) >> 8;
+////					I = charAddress[regV[Xreg]];
+//					logToDebugger("ldspr V[" + Xreg + "]");
+//					I = (short) toUnsignedInt((byte) (regV[Xreg] * 0xA));
+//					PC += 2;
+//					break;
+//				case (0x33):
+//					Xreg = (args & 0xf00) >> 8;
+//					short valueTobcd = (short) toUnsignedInt(regV[Xreg]);
+//					logToDebugger("BCD V[" + Xreg + "]");
+//					memory[I] = (byte) (valueTobcd / 100);
+//					memory[I + 1] = (byte) ((valueTobcd / 10) % 10);
+//					memory[I + 2] = (byte) ((valueTobcd % 100) % 10);
+//					PC += 2;
+//					break;
+//				case (0x55):
+//					copyIndex = (args & 0xf00) >> 8;
+//					logToDebugger("rgdump [" + I + "],V[" + copyIndex + "]");
+//
+////					for (int i = 0; i <= copyIndex; i++) {
+////						memory[I + i] = regV[i];
+////					}
+//					System.arraycopy(regV, 0, memory, I, copyIndex + 1);
+//					PC += 2;
+//					break;
+//				case (0x65):
+//					copyIndex = (args & 0xf00) >> 8;
+//					logToDebugger("memdump V[" + copyIndex + "]," + copyIndex + "");
+////					for (int i = 0; i <= copyIndex; i++) {
+////						regV[i] = memory[I + i];
+////					}
+//					System.arraycopy(memory, I + 0, regV, 0, copyIndex + 1);
+//					PC += 2;
+//					break;
+//				default:
+//					break;
+//				}
+//			}
 
 		}
 

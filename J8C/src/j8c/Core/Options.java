@@ -4,6 +4,7 @@ public class Options {
 	private boolean XWrapping = true;
 	private boolean YWrapping = false;
 	private boolean useOpenGL = false;
+	private boolean different8xye = false;
 
 	private Options() {
 	}
@@ -35,6 +36,14 @@ public class Options {
 	public void setUseOpenGL(boolean use) {
 		useOpenGL = use;
 
+	}
+
+	public void setDiff8xye(boolean val) {
+		different8xye = val;
+	}
+
+	public boolean useDifferent8xye() {
+		return different8xye;
 	}
 
 	public boolean useOpenGl() {

@@ -100,7 +100,8 @@ public class Timers {
 			while (soundTimer != 0) {
 				soundTimer--;
 				System.out.println("beep");
-				sdline.write(aud, 0, aud.length);
+				//This sound is fucking annoying
+				//sdline.write(aud, 0, aud.length);
 				try {
 					Thread.sleep(16);
 				} catch (InterruptedException e) {
