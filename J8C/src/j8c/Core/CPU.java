@@ -147,7 +147,7 @@ public class CPU implements Runnable {
 
 		PC = 0x200;
 		Stack.reset();
-		loadMemory();
+		loadROMtoMemory();
 		CPUThread = new Thread(this);
 		CPUThread.setName("Interpreter");
 		CPUThread.start();
@@ -247,11 +247,9 @@ public class CPU implements Runnable {
 				opcode, asm);
 	}
 
-	private void loadMemory() {
+	private void loadROMtoMemory() {
 		byte[] rom = RomLoader.getInstance().getRom();
-//		for (int i = 0; i < rom.length; ++i) {
-//			memory[512 + i] = rom[i];
-//		}
+
 		System.arraycopy(rom, 0, memory, 512, rom.length);
 		// teste de leitura da memoria
 //		int i = 0;
@@ -422,14 +420,14 @@ public class CPU implements Runnable {
 				break;
 			case (0xe):
 				logToDebugger("lsftob V[" + Xreg + "]");
-				if(!Options.getInstance().useDifferent8xye()) {
+				if (!Options.getInstance().useDifferent8xye()) {
 					regV[0xf] = (byte) (regV[Yreg] & 0x80);
 					regV[Xreg] = (byte) ((regV[Yreg] << 1) & 0xFF);
-				}else {
+				} else {
 					regV[0xf] = (byte) (regV[Xreg] & 0x80);
 					regV[Xreg] = (byte) ((regV[Xreg] << 1) & 0xFF);
 				}
-				
+
 				break;
 			default:
 				System.out.println("Unknown math instruction" + Integer.toHexString(mathInstId));
@@ -526,6 +524,7 @@ public class CPU implements Runnable {
 
 						for (int y = 0; y < 64; y++) {
 							byte nextLine[] = new byte[128];
+							Arrays.fill(nextLine, (byte) 0);
 //							for (int b = 0; b < 4; b++) {
 //								nextLine[b] = 0;
 //							}
@@ -586,7 +585,7 @@ public class CPU implements Runnable {
 					PC += 2;
 					break;
 				default:
-					System.out.println("Uknown opcode" + Integer.toHexString(id|args));
+					System.out.println("Uknown opcode" + Integer.toHexString(id | args));
 					break;
 				}
 				break;
@@ -849,7 +848,7 @@ public class CPU implements Runnable {
 					}
 					break;
 				default:
-					System.out.println("Uknown opcode" + Integer.toHexString(id|args));
+					System.out.println("Uknown opcode" + Integer.toHexString(id | args));
 					break;
 
 				}
@@ -933,13 +932,13 @@ public class CPU implements Runnable {
 					PC += 2;
 					break;
 				default:
-					System.out.println("Uknown opcode" + Integer.toHexString(id|args));
+					System.out.println("Uknown opcode" + Integer.toHexString(id | args));
 					break;
 				}
 
 				break;
 			default:
-				System.out.println("Uknown opcode" + Integer.toHexString(id|args));
+				System.out.println("Uknown opcode" + Integer.toHexString(id | args));
 				break;
 
 			}
